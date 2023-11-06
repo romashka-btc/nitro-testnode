@@ -171,7 +171,10 @@ function writeConfigs(argv: any) {
         "execution": {
             "sequencer": {
                 "enable": false,
-            }
+                "espresso": false,
+                "hotshot-url": "",
+                "espresso-namespace": 100,
+            },
         },
         "node": {
             "staker": {
@@ -185,6 +188,7 @@ function writeConfigs(argv: any) {
                 "strategy": "MakeNodes",
             },
             "sequencer": false,
+            "espresso": false,
             "delayed-sequencer": {
                 "enable": false
             },
@@ -246,8 +250,14 @@ function writeConfigs(argv: any) {
     let sequencerConfig = JSON.parse(baseConfJSON)
     sequencerConfig.execution.sequencer.enable = true
     sequencerConfig.node.sequencer = true
-    sequencerConfig.node["seq-coordinator"].enable = true
     sequencerConfig.node["delayed-sequencer"].enable = true
+    if (argv.espresso) {
+        sequencerConfig.node.espresso = true
+        sequencerConfig.execution.sequencer.espresso = true
+        sequencerConfig.execution.sequencer["hotshot-url"] = argv.espressoUrl
+    } else {
+        sequencerConfig.node["seq-coordinator"].enable = true
+    }
     fs.writeFileSync(path.join(consts.configpath, "sequencer_config.json"), JSON.stringify(sequencerConfig))
 
     let posterConfig = JSON.parse(baseConfJSON)

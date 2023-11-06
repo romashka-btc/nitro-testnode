@@ -40,6 +40,7 @@ consensusclient=false
 redundantsequencers=0
 dev_build_nitro=false
 dev_build_blockscout=false
+espresso=false
 batchposters=1
 devprivkey=b6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659
 l1chainid=1337
@@ -74,6 +75,10 @@ while [[ $# -gt 0 ]]; do
                     shift
                 done
             fi
+            ;;
+        --espresso)
+            espresso=true
+            shift
             ;;
         --build)
             force_build=true
@@ -200,6 +205,10 @@ fi
 if $blockscout; then
     NODES="$NODES blockscout"
 fi
+if $espresso; then
+    NODES="$NODES orchestrator da-server consensus-server espresso-sequencer0 espresso-sequencer1 commitment-task"
+
+fi
 if $force_build; then
   echo == Building..
   if $dev_build_nitro; then
@@ -292,6 +301,7 @@ if $force_init; then
     echo == Funding validator and sequencer
     docker-compose run scripts send-l1 --ethamount 1000 --to validator --wait
     docker-compose run scripts send-l1 --ethamount 1000 --to sequencer --wait
+    docker-compose run scripts send-l1 --ethamount 1000 --to espresso-sequencer --wait
 
     echo == create l1 traffic
     docker-compose run scripts send-l1 --ethamount 1000 --to user_l1user --wait
@@ -305,8 +315,16 @@ if $force_init; then
 
     docker-compose run --entrypoint /usr/local/bin/deploy poster --l1conn ws://geth:8546 --l1keystore /home/user/l1keystore --sequencerAddress $sequenceraddress --ownerAddress $sequenceraddress --l1DeployAccount $sequenceraddress --l1deployment /config/deployment.json --authorizevalidators 10 --wasmrootpath /home/user/target/machines --l1chainid=$l1chainid --l2chainconfig /config/l2_chain_config.json --l2chainname arb-dev-test --l2chaininfo /config/deployed_chain_info.json
     docker-compose run --entrypoint sh poster -c "jq [.[]] /config/deployed_chain_info.json > /config/l2_chain_info.json"
+
+    if $espresso; then
+        echo == Deploying Espresso Contract
+        echo "" > espresso.env
+        docker-compose up -d commitment-task espresso-sequencer0 espresso-sequencer1 --wait
+        espressol1contract=`curl http://localhost:60000/api/hotshot_contract`
+        echo "ESPRESSO_SEQUENCER_HOTSHOT_ADDRESS=$espressol1contract" > espresso.env
+    fi
     echo == Writing configs
-    docker-compose run scripts write-config
+    docker-compose run scripts write-config --espresso $espresso
 
     echo == Initializing redis
     docker-compose run scripts redis-init --redundancy $redundantsequencers
