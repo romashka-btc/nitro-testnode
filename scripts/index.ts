@@ -28,6 +28,10 @@ async function main() {
       l2owner: { string: true, default: "0x3f1Eae7D46d88F08fc2F8ed27FCb2AB183EB2d0E" },
     })
     .options(stressOptions)
+    .options({
+      espresso: { boolean: true, decription: 'use Espresso Sequencer for sequencing and DA', default: false },
+      espressoUrl: { string: true, description: 'Espresso Sequencer url', default: 'http://espresso-sequencer0:50000' },
+    })
     .command(bridgeFundsCommand)
     .command(bridgeToL3Command)
     .command(sendL1Command)
