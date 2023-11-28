@@ -220,6 +220,16 @@ function writeConfigs(argv: any) {
                 },
                 "espresso": false,
                 "hotshot-address": "",
+            },
+            "feed": {
+                "input": {
+                    "url": [], // websocket urls
+                },
+                "output": {
+                    "enable": false,
+                    "signed": false,
+                    "addr": "0.0.0.0",
+                },
             }
         },
         "persistent": {
@@ -257,17 +267,23 @@ function writeConfigs(argv: any) {
     sequencerConfig.execution.sequencer.enable = true
     sequencerConfig.node.sequencer = true
     sequencerConfig.node["delayed-sequencer"].enable = true
-    sequencerConfig.node["seq-coordinator"].enable = true
     if (argv.espresso) {
         sequencerConfig.node.espresso = true
         sequencerConfig.execution.sequencer.espresso = true
         sequencerConfig.execution.sequencer["hotshot-url"] = argv.espressoUrl
+        sequencerConfig.node.feed.output.enable = true
+    } else {
+        sequencerConfig.node["seq-coordinator"].enable = true
     }
     fs.writeFileSync(path.join(consts.configpath, "sequencer_config.json"), JSON.stringify(sequencerConfig))
 
     let posterConfig = JSON.parse(baseConfJSON)
     posterConfig["parent-chain"].wallet.account = namedAccount("sequencer").address
-    posterConfig.node["seq-coordinator"].enable = true
+    if (argv.espresso) {
+        posterConfig.node.feed.input.url.push("ws://sequencer:9642")
+    } else {
+        posterConfig.node["seq-coordinator"].enable = true
+    }
     posterConfig.node["batch-poster"].enable = true
     fs.writeFileSync(path.join(consts.configpath, "poster_config.json"), JSON.stringify(posterConfig))
 
