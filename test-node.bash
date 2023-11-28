@@ -38,6 +38,7 @@ tokenbridge=true
 l3node=false
 consensusclient=false
 redundantsequencers=0
+hotShotAddr=0x217788c286797d56cd59af5e493f3699c39cbbe8
 dev_build_nitro=false
 dev_build_blockscout=false
 espresso=false
@@ -320,11 +321,11 @@ if $force_init; then
         echo == Deploying Espresso Contract
         echo "" > espresso.env
         docker-compose up -d commitment-task espresso-sequencer0 espresso-sequencer1 --wait
-        espressol1contract=`curl http://localhost:60000/api/hotshot_contract`
-        echo "ESPRESSO_SEQUENCER_HOTSHOT_ADDRESS=$espressol1contract" > espresso.env
+        hotShotAddr=`curl http://localhost:60000/api/hotshot_contract`
+        echo "ESPRESSO_SEQUENCER_HOTSHOT_ADDRESS=$hotShotAddr" > espresso.env
     fi
     echo == Writing configs
-    docker-compose run scripts write-config --espresso $espresso
+    docker-compose run scripts write-config --espresso $espresso --hotshot-address $hotShotAddr
 
     echo == Initializing redis
     docker-compose run scripts redis-init --redundancy $redundantsequencers
