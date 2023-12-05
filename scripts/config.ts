@@ -218,6 +218,8 @@ function writeConfigs(argv: any) {
 					"url": argv.validationNodeUrl,
 					"jwtsecret": valJwtSecret,
 				}
+                                "espresso": false,
+                                "hotshot-address": "",  
             },
             "feed": {
                 "input": {
@@ -250,6 +252,10 @@ function writeConfigs(argv: any) {
     validatorConfig["parent-chain"].wallet.account = namedAccount("validator").address
     validatorConfig.node.staker.enable = true
     validatorConfig.node.staker["use-smart-contract-wallet"] = true
+    if (argv.espresso) {
+        validatorConfig.node["block-validator"]["espresso"] = true
+        validatorConfig.node["block-validator"]["hotshot-address"] = argv["hotshot-address"]
+    }
     let validconfJSON = JSON.stringify(validatorConfig)
     fs.writeFileSync(path.join(consts.configpath, "validator_config.json"), validconfJSON)
 
