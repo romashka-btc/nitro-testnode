@@ -217,7 +217,7 @@ function writeConfigs(argv: any) {
 				"validation-server" : {
 					"url": argv.validationNodeUrl,
 					"jwtsecret": valJwtSecret,
-				}
+				},
                                 "espresso": false,
                                 "hotshot-address": "",  
             },
