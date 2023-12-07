@@ -332,6 +332,7 @@ function writeL2ChainConfig(argv: any) {
 		"eip150Block": 0,
 		"eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
 		"eip155Block": 0,
+                "espresso": argv.espresso,
 		"eip158Block": 0,
 		"byzantiumBlock": 0,
 		"constantinopleBlock": 0,
