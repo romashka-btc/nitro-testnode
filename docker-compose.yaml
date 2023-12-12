@@ -19,13 +19,13 @@ services:
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     env_file:
-      -  ./blockscout/nitro.env
+      - ./blockscout/nitro.env
     environment:
-        ETHEREUM_JSONRPC_VARIANT: 'geth'
-        ETHEREUM_JSONRPC_HTTP_URL: http://sequencer:8547/
-        INDEXER_DISABLE_PENDING_TRANSACTIONS_FETCHER: "true"
-        DATABASE_URL: postgresql://postgres:@postgres:5432/blockscout
-        ECTO_USE_SSL: "false"
+      ETHEREUM_JSONRPC_VARIANT: 'geth'
+      ETHEREUM_JSONRPC_HTTP_URL: http://sequencer:8547/
+      INDEXER_DISABLE_PENDING_TRANSACTIONS_FETCHER: "true"
+      DATABASE_URL: postgresql://postgres:@postgres:5432/blockscout
+      ECTO_USE_SSL: "false"
     ports:
       - "127.0.0.1:4000:4000"
 
@@ -34,9 +34,9 @@ services:
     restart: always
     container_name: 'postgres'
     environment:
-        POSTGRES_PASSWORD: ''
-        POSTGRES_USER: 'postgres'
-        POSTGRES_HOST_AUTH_METHOD: 'trust'
+      POSTGRES_PASSWORD: ''
+      POSTGRES_USER: 'postgres'
+      POSTGRES_HOST_AUTH_METHOD: 'trust'
     volumes:
       - "postgres-data:/var/lib/postgresql/data"
     ports:
@@ -163,7 +163,6 @@ services:
     depends_on:
       - geth
       - redis
-
 
   sequencer_b:
     pid: host # allow debugging
@@ -381,7 +380,7 @@ services:
     ports:
       - "$ESPRESSO_SEQUENCER_API_PORT:$ESPRESSO_SEQUENCER_API_PORT"
     # Run the API server (with options taken from the environment) and the optional submission API
-    command: sequencer -- http -- query -- submit
+    command: sequencer -- http -- query-fs -- submit
     environment:
       - ESPRESSO_SEQUENCER_ORCHESTRATOR_URL
       - ESPRESSO_SEQUENCER_DA_SERVER_URL
@@ -407,7 +406,6 @@ services:
     ports:
       - "$ESPRESSO_SEQUENCER1_API_PORT:$ESPRESSO_SEQUENCER_API_PORT"
     # Run the API server (with options taken from the environment)
-    command: sequencer -- http -- query
     environment:
       - ESPRESSO_SEQUENCER_ORCHESTRATOR_URL
       - ESPRESSO_SEQUENCER_DA_SERVER_URL
