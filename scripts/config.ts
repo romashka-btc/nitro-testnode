@@ -253,6 +253,7 @@ function writeConfigs(argv: any) {
     validatorConfig.node.staker.enable = true
     validatorConfig.node.staker["use-smart-contract-wallet"] = true
     if (argv.espresso) {
+        validatorConfig.execution["forwarding-target"] = "null"
         validatorConfig.node["block-validator"]["espresso"] = true
         // If we don't quote the address it is interpreted as a Number.
         // The quotes however stick around and make it an invalid address.
@@ -284,6 +285,7 @@ function writeConfigs(argv: any) {
     let posterConfig = JSON.parse(baseConfJSON)
     posterConfig["parent-chain"].wallet.account = namedAccount("sequencer").address
     if (argv.espresso) {
+        posterConfig.execution["forwarding-target"] = "null"
         posterConfig.node.feed.input.url.push("ws://sequencer:9642")
     } else {
         posterConfig.node["seq-coordinator"].enable = true
