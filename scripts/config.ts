@@ -357,8 +357,12 @@ function writeL2ChainConfig(argv: any) {
 			"DataAvailabilityCommittee": false,
 			"InitialArbOSVersion": 11,
 			"InitialChainOwner": argv.l2owner,
-			"GenesisBlockNum": 0
+			"GenesisBlockNum": 0,
+			"EnableEspresso": false,
 		}
+    }
+    if (argv.espresso) {
+        l2ChainConfig.arbitrum.EnableEspresso = true
     }
     const l2ChainConfigJSON = JSON.stringify(l2ChainConfig)
     fs.writeFileSync(path.join(consts.configpath, "l2_chain_config.json"), l2ChainConfigJSON)
