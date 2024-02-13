@@ -3,6 +3,7 @@
 set -e
 
 NITRO_NODE_VERSION=offchainlabs/nitro-node:v2.1.1-e9d8842-dev
+ESPRESSO_VERSION=ghcr.io/espressosystems/nitro-espresso-integration/nitro-node-dev:integration
 BLOCKSCOUT_VERSION=offchainlabs/blockscout:v1.0.0-c8db5b1
 
 mydir=`dirname $0`
@@ -42,6 +43,7 @@ hotShotAddr=0x217788c286797d56cd59af5e493f3699c39cbbe8
 dev_build_nitro=false
 dev_build_blockscout=false
 espresso=false
+latest_espresso_image=false
 batchposters=1
 devprivkey=b6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659
 l1chainid=1337
@@ -79,6 +81,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --espresso)
             espresso=true
+            shift
+            ;;
+        --latest-espresso-image)
+            latest_espresso_image=true
             shift
             ;;
         --build)
@@ -238,8 +244,13 @@ fi
 if $dev_build_nitro; then
   docker tag nitro-node-dev:latest nitro-node-dev-testnode
 else
-  docker pull $NITRO_NODE_VERSION
-  docker tag $NITRO_NODE_VERSION nitro-node-dev-testnode
+  if $latest_espresso_image; then
+    docker pull $ESPRESSO_VERSION 
+    docker tag $ESPRESSO_VERSION nitro-node-dev-testnode
+  else 
+     docker pull $NITRO_NODE_VERSION
+     docker tag $NITRO_NODE_VERSION nitro-node-dev-testnode
+  fi
 fi
 
 if $dev_build_blockscout; then
