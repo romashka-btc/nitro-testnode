@@ -173,7 +173,7 @@ function writeConfigs(argv: any) {
                 "enable": false,
                 "espresso": false,
                 "hotshot-url": "",
-                "espresso-namespace": 100,
+                "espresso-namespace": 412346,
             },
         },
         "node": {
