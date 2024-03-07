@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as consts from './consts'
-import { namedAccount } from './accounts'
+import { namedAccount, namedAddress } from './accounts'
 
 const path = require("path");
 
@@ -32,7 +32,7 @@ DEPOSIT_CONTRACT_ADDRESS: 0x4242424242424242424242424242424242424242
 }
 
 function writeGethGenesisConfig(argv: any) {
-   const gethConfig =  `
+    const gethConfig = `
     {
         "config": {
             "ChainName": "l1_chain",
@@ -152,34 +152,26 @@ function writeGethGenesisConfig(argv: any) {
 
 function writeConfigs(argv: any) {
     const valJwtSecret = path.join(consts.configpath, "val_jwt.hex")
-	const chainInfoFile = path.join(consts.configpath, "l2_chain_info.json")
+    const chainInfoFile = path.join(consts.configpath, "l2_chain_info.json")
     const baseConfig = {
         "parent-chain": {
-            "connection" : {
+            "connection": {
                 "url": argv.l1url,
-            },
-            "wallet": {
-                "account": "",
-                "password": consts.l1passphrase,
-                "pathname": consts.l1keystore,
             },
         },
         "chain": {
             "id": 412346,
             "info-files": [chainInfoFile],
         },
-        "execution": {
-            "sequencer": {
-                "enable": false,
-                "espresso": false,
-                "hotshot-url": "",
-                "espresso-namespace": 100,
-            },
-        },
         "node": {
             "staker": {
                 "dangerous": {
                     "without-block-validator": false
+                },
+                "parent-chain-wallet" : {
+                    "account": namedAddress("validator"),
+                    "password": consts.l1passphrase,
+                    "pathname": consts.l1keystore,    
                 },
                 "disable-challenge": false,
                 "enable": false,
@@ -189,6 +181,9 @@ function writeConfigs(argv: any) {
             },
             "sequencer": false,
             "espresso": false,
+            "dangerous": {
+                "no-sequencer-coordinator": false
+            },
             "delayed-sequencer": {
                 "enable": false
             },
@@ -206,9 +201,15 @@ function writeConfigs(argv: any) {
                 "enable": false,
                 "redis-url": argv.redisUrl,
                 "max-delay": "30s",
+                "l1-block-bound": "ignore",
+                "parent-chain-wallet" : {
+                    "account": namedAddress("sequencer"),
+                    "password": consts.l1passphrase,
+                    "pathname": consts.l1keystore,    
+                },
                 "data-poster": {
                     "redis-signer": {
-                      "signing-key": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+                        "signing-key": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
                     },
                     "wait-for-l1-finality": false
                 }
@@ -232,6 +233,15 @@ function writeConfigs(argv: any) {
                 },
             }
         },
+        "execution": {
+            "sequencer": {
+                "enable": false,
+                "espresso": false,
+                "hotshot-url": "",
+                "espresso-namespace": 100,
+            },
+            "forwarding-target": "null",
+        },
         "persistent": {
             "chain": "local"
         },
@@ -248,62 +258,78 @@ function writeConfigs(argv: any) {
 
     const baseConfJSON = JSON.stringify(baseConfig)
 
-    let validatorConfig = JSON.parse(baseConfJSON)
-    validatorConfig["parent-chain"].wallet.account = namedAccount("validator").address
-    validatorConfig.node.staker.enable = true
-    validatorConfig.node.staker["use-smart-contract-wallet"] = true
-    if (argv.espresso) {
-        validatorConfig.execution["forwarding-target"] = "null"
-        validatorConfig.node["block-validator"]["espresso"] = true
-        // If we don't quote the address it is interpreted as a Number.
-        // The quotes however stick around and make it an invalid address.
-        // Remove the double quote from the hotshot address.
-        // There has to be a better way.
-        validatorConfig.node["block-validator"]["hotshot-address"] = argv["hotshot-address"].replace(/^"(.+(?="$))"$/, '$1')
-    }
-    let validconfJSON = JSON.stringify(validatorConfig)
-    fs.writeFileSync(path.join(consts.configpath, "validator_config.json"), validconfJSON)
-
-    let unsafeStakerConfig = JSON.parse(validconfJSON)
-    unsafeStakerConfig.node.staker.dangerous["without-block-validator"] = true
-    fs.writeFileSync(path.join(consts.configpath, "unsafe_staker_config.json"), JSON.stringify(unsafeStakerConfig))
-
-    let sequencerConfig = JSON.parse(baseConfJSON)
-    sequencerConfig.execution.sequencer.enable = true
-    sequencerConfig.node.sequencer = true
-    sequencerConfig.node["delayed-sequencer"].enable = true
-    if (argv.espresso) {
-        sequencerConfig.node.espresso = true
-        sequencerConfig.execution.sequencer.espresso = true
-        sequencerConfig.execution.sequencer["hotshot-url"] = argv.espressoUrl
-        sequencerConfig.node.feed.output.enable = true
+    if (argv.simple) {
+        let simpleConfig = JSON.parse(baseConfJSON)
+        simpleConfig.node.staker.enable = true
+        simpleConfig.node.staker["use-smart-contract-wallet"] = true
+        simpleConfig.node.staker.dangerous["without-block-validator"] = true
+        simpleConfig.node.sequencer = true
+        simpleConfig.node.dangerous["no-sequencer-coordinator"] = true
+        simpleConfig.node["delayed-sequencer"].enable = true
+        simpleConfig.node["batch-poster"].enable = true
+        simpleConfig.node["batch-poster"]["redis-url"] = ""
+        simpleConfig.execution["sequencer"].enable = true
+        fs.writeFileSync(path.join(consts.configpath, "sequencer_config.json"), JSON.stringify(simpleConfig))
     } else {
-        sequencerConfig.node["seq-coordinator"].enable = true
-    }
-    fs.writeFileSync(path.join(consts.configpath, "sequencer_config.json"), JSON.stringify(sequencerConfig))
+        let validatorConfig = JSON.parse(baseConfJSON)
+        validatorConfig.node.staker.enable = true
+        validatorConfig.node.staker["use-smart-contract-wallet"] = true
+        if (argv.espresso) {
+            validatorConfig.execution["forwarding-target"] = "null"
+            validatorConfig.node["block-validator"]["espresso"] = true
+            // If we don't quote the address it is interpreted as a Number.
+            // The quotes however stick around and make it an invalid address.
+            // Remove the double quote from the hotshot address.
+            // There has to be a better way.
+            validatorConfig.node["block-validator"]["hotshot-address"] = argv["hotshot-address"].replace(/^"(.+(?="$))"$/, '$1')
+        }
+        let validconfJSON = JSON.stringify(validatorConfig)
+        fs.writeFileSync(path.join(consts.configpath, "validator_config.json"), validconfJSON)
 
-    let posterConfig = JSON.parse(baseConfJSON)
-    posterConfig["parent-chain"].wallet.account = namedAccount("sequencer").address
+        let unsafeStakerConfig = JSON.parse(validconfJSON)
+        unsafeStakerConfig.node.staker.dangerous["without-block-validator"] = true
+        fs.writeFileSync(path.join(consts.configpath, "unsafe_staker_config.json"), JSON.stringify(unsafeStakerConfig))
+
+        let sequencerConfig = JSON.parse(baseConfJSON)
+        sequencerConfig.node.sequencer = true
+        sequencerConfig.execution["sequencer"].enable = true
+        sequencerConfig.node["delayed-sequencer"].enable = true
+
+        if (argv.espresso) {
+            sequencerConfig.node.espresso = true
+            sequencerConfig.execution.sequencer.espresso = true
+            sequencerConfig.execution.sequencer["hotshot-url"] = argv.espressoUrl
+            sequencerConfig.node.feed.output.enable = true
+        } else {
+            sequencerConfig.node["seq-coordinator"].enable = true
+        }
+        fs.writeFileSync(path.join(consts.configpath, "sequencer_config.json"), JSON.stringify(sequencerConfig))
+
+        let posterConfig = JSON.parse(baseConfJSON)
     if (argv.espresso) {
-        posterConfig.execution["forwarding-target"] = "null"
         posterConfig.node.feed.input.url.push("ws://sequencer:9642")
     } else {
         posterConfig.node["seq-coordinator"].enable = true
     }
-    posterConfig.node["batch-poster"].enable = true
-    fs.writeFileSync(path.join(consts.configpath, "poster_config.json"), JSON.stringify(posterConfig))
+        posterConfig.node["batch-poster"].enable = true
+        fs.writeFileSync(path.join(consts.configpath, "poster_config.json"), JSON.stringify(posterConfig))
+    }
 
     let l3Config = JSON.parse(baseConfJSON)
-    l3Config["parent-chain"].connection.url = argv.l2url 
-    l3Config["parent-chain"].wallet.account = namedAccount("l3sequencer").address
+    l3Config["parent-chain"].connection.url = argv.l2url
+    l3Config.node.staker["parent-chain-wallet"].account = namedAddress("l3owner")
+    l3Config.node["batch-poster"]["parent-chain-wallet"].account = namedAddress("l3sequencer")
     l3Config.chain.id = 333333
     const l3ChainInfoFile = path.join(consts.configpath, "l3_chain_info.json")
     l3Config.chain["info-files"] = [l3ChainInfoFile]
     l3Config.node.staker.enable = true
     l3Config.node.staker["use-smart-contract-wallet"] = true
     l3Config.node.sequencer = true
-    l3Config.execution.sequencer.enable = true
+    l3Config.execution["sequencer"].enable = true
+    l3Config.node["dangerous"]["no-sequencer-coordinator"] = true
     l3Config.node["delayed-sequencer"].enable = true
+    l3Config.node["delayed-sequencer"]["finalize-distance"] = 0
+    l3Config.node["delayed-sequencer"]["use-merge-finality"] = false
     l3Config.node["batch-poster"].enable = true
     l3Config.node["batch-poster"]["redis-url"] = ""
     fs.writeFileSync(path.join(consts.configpath, "l3node_config.json"), JSON.stringify(l3Config))
@@ -338,7 +364,7 @@ function writeL2ChainConfig(argv: any) {
 		"eip150Block": 0,
 		"eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
 		"eip155Block": 0,
-                "espresso": argv.espresso,
+        "espresso": argv.espresso,
 		"eip158Block": 0,
 		"byzantiumBlock": 0,
 		"constantinopleBlock": 0,
@@ -370,32 +396,32 @@ function writeL2ChainConfig(argv: any) {
 
 function writeL3ChainConfig(argv: any) {
     const l3ChainConfig = {
-		"chainId": 333333,
-		"homesteadBlock": 0,
-		"daoForkSupport": true,
-		"eip150Block": 0,
-		"eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-		"eip155Block": 0,
-		"eip158Block": 0,
-		"byzantiumBlock": 0,
-		"constantinopleBlock": 0,
-		"petersburgBlock": 0,
-		"istanbulBlock": 0,
-		"muirGlacierBlock": 0,
-		"berlinBlock": 0,
-		"londonBlock": 0,
-		"clique": {
-			"period": 0,
-			"epoch": 0
-		},
-		"arbitrum": {
-			"EnableArbOS": true,
-			"AllowDebugPrecompiles": true,
-			"DataAvailabilityCommittee": false,
-			"InitialArbOSVersion": 11,
-			"InitialChainOwner": "0x0000000000000000000000000000000000000000",
-			"GenesisBlockNum": 0
-		}
+        "chainId": 333333,
+        "homesteadBlock": 0,
+        "daoForkSupport": true,
+        "eip150Block": 0,
+        "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "eip155Block": 0,
+        "eip158Block": 0,
+        "byzantiumBlock": 0,
+        "constantinopleBlock": 0,
+        "petersburgBlock": 0,
+        "istanbulBlock": 0,
+        "muirGlacierBlock": 0,
+        "berlinBlock": 0,
+        "londonBlock": 0,
+        "clique": {
+            "period": 0,
+            "epoch": 0
+        },
+        "arbitrum": {
+            "EnableArbOS": true,
+            "AllowDebugPrecompiles": true,
+            "DataAvailabilityCommittee": false,
+            "InitialArbOSVersion": 11,
+            "InitialChainOwner": "0x0000000000000000000000000000000000000000",
+            "GenesisBlockNum": 0
+        }
     }
     const l3ChainConfigJSON = JSON.stringify(l3ChainConfig)
     fs.writeFileSync(path.join(consts.configpath, "l3_chain_config.json"), l3ChainConfigJSON)
@@ -404,6 +430,13 @@ function writeL3ChainConfig(argv: any) {
 export const writeConfigCommand = {
     command: "write-config",
     describe: "writes config files",
+    builder: {
+        simple: {
+          boolean: true,
+          describe: "simple config (sequencer is also poster, validator)",
+          default: false,
+        },
+      },    
     handler: (argv: any) => {
         writeConfigs(argv)
     }
