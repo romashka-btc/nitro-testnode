@@ -337,7 +337,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
   orchestrator:
-    image: ghcr.io/espressosystems/espresso-sequencer/orchestrator:main
+    image: ghcr.io/espressosystems/espresso-sequencer/orchestrator:arbitrum-integrationmusl
     ports:
       - "$ESPRESSO_ORCHESTRATOR_PORT:$ESPRESSO_ORCHESTRATOR_PORT"
     environment:
@@ -352,7 +352,7 @@ services:
       - RUST_LOG_FORMAT
 
   da-server:
-    image: ghcr.io/espressosystems/espresso-sequencer/web-server:main
+    image: ghcr.io/espressosystems/espresso-sequencer/web-server:arbitrum-integrationmusl
     ports:
       - "$ESPRESSO_DA_SERVER_PORT:$ESPRESSO_WEB_SERVER_PORT"
     environment:
@@ -364,7 +364,7 @@ services:
         condition: service_healthy
 
   consensus-server:
-    image: ghcr.io/espressosystems/espresso-sequencer/web-server:main
+    image: ghcr.io/espressosystems/espresso-sequencer/web-server:arbitrum-integrationmusl
     ports:
       - "$ESPRESSO_CONSENSUS_SERVER_PORT:$ESPRESSO_WEB_SERVER_PORT"
     environment:
@@ -376,7 +376,7 @@ services:
         condition: service_healthy
 
   espresso-sequencer0:
-    image: ghcr.io/espressosystems/espresso-sequencer/sequencer:main
+    image: ghcr.io/espressosystems/espresso-sequencer/sequencer:arbitrum-integrationmusl
     ports:
       - "$ESPRESSO_SEQUENCER_API_PORT:$ESPRESSO_SEQUENCER_API_PORT"
     # Run the API server (with options taken from the environment) and the optional submission API
@@ -387,9 +387,14 @@ services:
       - ESPRESSO_SEQUENCER_CONSENSUS_SERVER_URL
       - ESPRESSO_SEQUENCER_API_PORT
       - ESPRESSO_SEQUENCER_STORAGE_PATH
-      - ESPRESSO_SEQUENCER_L1_WS_PROVIDER
+      - ESPRESSO_SEQUENCER_L1_PROVIDER
       - ESPRESSO_SEQUENCER_L1_USE_LATEST_BLOCK_TAG
-      - ESPRESSO_SEQUENCER_PRIVATE_STAKING_KEY=$ESPRESSO_DEMO_SEQUENCER_PRIVATE_STAKING_KEY_0
+      - ESPRESSO_SEQUENCER_PRIVATE_STAKING_KEY=$ESPRESSO_DEMO_SEQUENCER_STAKING_PRIVATE_KEY_0
+      - ESPRESSO_SEQUENCER_PRIVATE_STATE_KEY=$ESPRESSO_DEMO_SEQUENCER_STATE_PRIVATE_KEY_1
+      - ESPRESSO_SEQUENCER_ETH_MNEMONIC
+      - ESPRESSO_SEQUENCER_ETH_ACCOUNT_INDEX
+      - ESPRESSO_SEQUENCER_PREFUNDED_BUILDER_ACCOUNTS
+      - ESPRESSO_SEQUENCER_STATE_PEERS=http://espresso-sequencer1:$ESPRESSO_SEQUENCER_API_PORT
       - RUST_LOG
       - RUST_LOG_FORMAT
     depends_on:
@@ -403,7 +408,7 @@ services:
         condition: service_started
 
   espresso-sequencer1:
-    image: ghcr.io/espressosystems/espresso-sequencer/sequencer:main
+    image: ghcr.io/espressosystems/espresso-sequencer/sequencer:arbitrum-integrationmusl
     ports:
       - "$ESPRESSO_SEQUENCER1_API_PORT:$ESPRESSO_SEQUENCER_API_PORT"
     # Run the API server (with options taken from the environment)
@@ -413,11 +418,16 @@ services:
       - ESPRESSO_SEQUENCER_CONSENSUS_SERVER_URL
       - ESPRESSO_SEQUENCER_API_PORT
       - ESPRESSO_SEQUENCER_STORAGE_PATH
-      - ESPRESSO_SEQUENCER_L1_WS_PROVIDER
+      - ESPRESSO_SEQUENCER_L1_PROVIDER
       - ESPRESSO_SEQUENCER_L1_USE_LATEST_BLOCK_TAG
-      - ESPRESSO_SEQUENCER_PRIVATE_STAKING_KEY=$ESPRESSO_DEMO_SEQUENCER_PRIVATE_STAKING_KEY_1
+      - ESPRESSO_SEQUENCER_PRIVATE_STAKING_KEY=$ESPRESSO_DEMO_SEQUENCER_STAKING_PRIVATE_KEY_1
+      - ESPRESSO_SEQUENCER_PRIVATE_STATE_KEY=$ESPRESSO_DEMO_SEQUENCER_STATE_PRIVATE_KEY_1
+      - ESPRESSO_SEQUENCER_ETH_MNEMONIC
+      - ESPRESSO_SEQUENCER_ETH_ACCOUNT_INDEX
+      - ESPRESSO_SEQUENCER_PREFUNDED_BUILDER_ACCOUNTS
       - RUST_LOG
       - RUST_LOG_FORMAT
+      - ESPRESSO_SEQUENCER_STATE_PEERS=http://espresso-sequencer0:$ESPRESSO_SEQUENCER_API_PORT
     depends_on:
       orchestrator:
         condition: service_healthy
@@ -429,14 +439,14 @@ services:
         condition: service_started
 
   commitment-task:
-    image: ghcr.io/espressosystems/espresso-sequencer/commitment-task:main
+    image: ghcr.io/espressosystems/espresso-sequencer/commitment-task:arbitrum-integrationmusl
     ports:
       - "$ESPRESSO_COMMITMENT_TASK_PORT:$ESPRESSO_COMMITMENT_TASK_PORT"
     command: commitment-task --deploy
     env_file:
       - espresso.env
     environment:
-      - ESPRESSO_SEQUENCER_ETH_MNEMONIC
+      - ESPRESSO_SEQUENCER_ETH_MNEMONIC=$ESPRESSO_COMMITMENT_ETH_MNEMONIC
       - ESPRESSO_SEQUENCER_HOTSHOT_ACCOUNT_INDEX
       - ESPRESSO_COMMITMENT_TASK_PORT
       - ESPRESSO_SEQUENCER_URL

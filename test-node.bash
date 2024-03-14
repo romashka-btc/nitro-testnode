@@ -377,7 +377,7 @@ if $force_init; then
         docker compose run scripts write-config --simple --espresso $espresso --hotshot-address $hotShotAddr
     else
         echo == Writing configs
-        docker compose run scripts write-config
+        docker compose run scripts write-config --espresso $espresso --hotshot-address $hotShotAddr
 
         echo == Initializing redis
         docker compose up --wait redis

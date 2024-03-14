@@ -220,8 +220,9 @@ function writeConfigs(argv: any) {
 					"url": argv.validationNodeUrl,
 					"jwtsecret": valJwtSecret,
 				},
-                                "espresso": false,
-                                "hotshot-address": "",
+                "espresso": false,
+                "hotshot-address": "",
+                "dangerous": {"reset-block-validation": false},
             },
             "feed": {
                 "input": {
@@ -239,7 +240,7 @@ function writeConfigs(argv: any) {
                 "enable": false,
                 "espresso": false,
                 "hotshot-url": "",
-                "espresso-namespace": 100,
+                "espresso-namespace": 412346,
             },
             "forwarding-target": "null",
         },
@@ -276,13 +277,13 @@ function writeConfigs(argv: any) {
         validatorConfig.node.staker.enable = true
         validatorConfig.node.staker["use-smart-contract-wallet"] = true
         if (argv.espresso) {
-            validatorConfig.execution["forwarding-target"] = "null"
             validatorConfig.node["block-validator"]["espresso"] = true
             // If we don't quote the address it is interpreted as a Number.
             // The quotes however stick around and make it an invalid address.
             // Remove the double quote from the hotshot address.
             // There has to be a better way.
             validatorConfig.node["block-validator"]["hotshot-address"] = argv["hotshot-address"].replace(/^"(.+(?="$))"$/, '$1')
+            validatorConfig.node["block-validator"]["dangerous"]["reset-block-validation"] = true
         }
         let validconfJSON = JSON.stringify(validatorConfig)
         fs.writeFileSync(path.join(consts.configpath, "validator_config.json"), validconfJSON)
@@ -301,6 +302,7 @@ function writeConfigs(argv: any) {
             sequencerConfig.execution.sequencer.espresso = true
             sequencerConfig.execution.sequencer["hotshot-url"] = argv.espressoUrl
             sequencerConfig.node.feed.output.enable = true
+            sequencerConfig.node.dangerous["no-sequencer-coordinator"] = true
         } else {
             sequencerConfig.node["seq-coordinator"].enable = true
         }
