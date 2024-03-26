@@ -77,6 +77,7 @@ while [[ $# -gt 0 ]]; do
             fi
             ;;
         --espresso)
+            simple=false
             espresso=true
             shift
             ;;
@@ -349,7 +350,7 @@ if $force_init; then
     docker compose run scripts send-l1 --ethamount 1000 --to validator --wait
     docker compose run scripts send-l1 --ethamount 1000 --to sequencer --wait
     docker compose run scripts send-l1 --ethamount 1000 --to l2owner --wait
-    docker compose run scripts send-l1 --ethamount 1000 --to espresso-sequencer --wait
+    docker compose run scripts send-l1 --ethamount 10000 --to espresso-sequencer --wait
 
     echo == create l1 traffic
     docker compose run scripts send-l1 --ethamount 1000 --to user_l1user --wait
@@ -373,8 +374,8 @@ if $force_init; then
     docker compose run --entrypoint sh sequencer -c "jq [.[]] /config/deployed_chain_info.json > /config/l2_chain_info.json"
 
     if $simple; then
-        echo == Writing configs --espresso $espresso --hotshot-address $hotShotAddr
-        docker compose run scripts write-config --simple --espresso $espresso --hotshot-address $hotShotAddr
+        echo == Writing configs
+        docker compose run scripts write-config --simple
     else
         echo == Writing configs
         docker compose run scripts write-config --espresso $espresso --hotshot-address $hotShotAddr
@@ -387,6 +388,7 @@ if $force_init; then
     echo == Funding l2 funnel and dev key
     docker compose up --wait $INITIAL_SEQ_NODES
     docker compose run scripts bridge-funds --ethamount 100000 --wait
+    docker compose run scripts send-l2 --ethamount 10000 --to espresso-sequencer --wait
     docker compose run scripts bridge-funds --ethamount 1000 --wait --from "key_0x$devprivkey"
 
     if $tokenbridge; then
