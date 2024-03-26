@@ -347,22 +347,22 @@ if $force_init; then
     fi
 
     echo == Funding validator, sequencer and l2owner
-    docker-compose run scripts send-l1 --ethamount 1000 --to validator --wait
-    docker-compose run scripts send-l1 --ethamount 1000 --to sequencer --wait
+    docker compose run scripts send-l1 --ethamount 1000 --to validator --wait
+    docker compose run scripts send-l1 --ethamount 1000 --to sequencer --wait
     docker compose run scripts send-l1 --ethamount 1000 --to l2owner --wait
-    docker-compose run scripts send-l1 --ethamount 10000 --to espresso-sequencer --wait
+    docker compose run scripts send-l1 --ethamount 10000 --to espresso-sequencer --wait
 
     echo == create l1 traffic
-    docker-compose run scripts send-l1 --ethamount 1000 --to user_l1user --wait
-    docker-compose run scripts send-l1 --ethamount 0.0001 --from user_l1user --to user_l1user_b --wait --delay 500 --times 1000000 > /dev/null &
+    docker compose run scripts send-l1 --ethamount 1000 --to user_l1user --wait
+    docker compose run scripts send-l1 --ethamount 0.0001 --from user_l1user --to user_l1user_b --wait --delay 500 --times 1000000 > /dev/null &
 
     echo == Writing l2 chain config
-    docker-compose run scripts write-l2-chain-config --espresso $espresso
+    docker compose run scripts write-l2-chain-config --espresso $espresso
 
     if $espresso; then
         echo == Deploying Espresso Contract
         echo "" > espresso.env
-        docker-compose up -d commitment-task espresso-sequencer0 espresso-sequencer1 --wait
+        docker compose up -d commitment-task espresso-sequencer0 espresso-sequencer1 --wait
         hotShotAddr=`curl http://localhost:60000/api/hotshot_contract`
         echo "ESPRESSO_SEQUENCER_HOTSHOT_ADDRESS=$hotShotAddr" > espresso.env
     fi
@@ -388,7 +388,7 @@ if $force_init; then
     echo == Funding l2 funnel and dev key
     docker compose up --wait $INITIAL_SEQ_NODES
     docker compose run scripts bridge-funds --ethamount 100000 --wait
-    docker-compose run scripts send-l2 --ethamount 10000 --to espresso-sequencer --wait
+    docker compose run scripts send-l2 --ethamount 10000 --to espresso-sequencer --wait
     docker compose run scripts bridge-funds --ethamount 1000 --wait --from "key_0x$devprivkey"
 
     if $tokenbridge; then
