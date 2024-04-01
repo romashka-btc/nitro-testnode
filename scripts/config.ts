@@ -213,7 +213,9 @@ function writeConfigs(argv: any) {
                         "signing-key": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
                     },
                     "wait-for-l1-finality": false
-                }
+                },
+                "hotshot-url": "",
+                "light-client-address": "",
             },
             "block-validator": {
 				"validation-server" : {
@@ -278,11 +280,7 @@ function writeConfigs(argv: any) {
         validatorConfig.node.staker["use-smart-contract-wallet"] = true
         if (argv.espresso) {
             validatorConfig.node["block-validator"]["espresso"] = true
-            // If we don't quote the address it is interpreted as a Number.
-            // The quotes however stick around and make it an invalid address.
-            // Remove the double quote from the hotshot address.
-            // There has to be a better way.
-            validatorConfig.node["block-validator"]["hotshot-address"] = argv["hotshot-address"].replace(/^"(.+(?="$))"$/, '$1')
+            validatorConfig.node["block-validator"]["hotshot-address"] = argv.hotshotAddress
             validatorConfig.node["block-validator"]["dangerous"]["reset-block-validation"] = true
         }
         let validconfJSON = JSON.stringify(validatorConfig)
@@ -311,6 +309,8 @@ function writeConfigs(argv: any) {
         let posterConfig = JSON.parse(baseConfJSON)
     if (argv.espresso) {
         posterConfig.node.feed.input.url.push("ws://sequencer:9642")
+        posterConfig.node["batch-poster"]["hotshot-url"] = argv.espressoUrl
+        posterConfig.node["batch-poster"]["light-client-address"] = argv.lightClientAddress
     } else {
         posterConfig.node["seq-coordinator"].enable = true
     }
