@@ -457,8 +457,6 @@ services:
     image: ghcr.io/espressosystems/espresso-sequencer/commitment-task:arbitrum-integrationmusl
     ports:
       - "$ESPRESSO_COMMITMENT_TASK_PORT:$ESPRESSO_COMMITMENT_TASK_PORT"
-    env_file:
-      - espresso.env
     environment:
       - ESPRESSO_SEQUENCER_ETH_MNEMONIC=$ESPRESSO_COMMITMENT_ETH_MNEMONIC
       - ESPRESSO_SEQUENCER_HOTSHOT_ACCOUNT_INDEX
