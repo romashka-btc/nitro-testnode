@@ -426,8 +426,9 @@ services:
     image: ghcr.io/espressosystems/espresso-sequencer/sequencer:arbitrum-integrationmusl
     ports:
       - "$ESPRESSO_SEQUENCER_API_PORT:$ESPRESSO_SEQUENCER_API_PORT"
+      - "$ESPRESSO_SEQUENCER_HOTSHOT_EVENT_STREAMING_API_PORT:$ESPRESSO_SEQUENCER_HOTSHOT_EVENT_STREAMING_API_PORT"
     # Run the API server (with options taken from the environment) and the optional submission API
-    command: sequencer -- http -- query -- status -- submit
+    command: sequencer -- http -- query -- status -- submit -- hotshot-events
     environment:
       - ESPRESSO_SEQUENCER_ORCHESTRATOR_URL
       - ESPRESSO_SEQUENCER_CDN_ENDPOINT
@@ -558,7 +559,7 @@ services:
       retries: 20
 
   permissionless-builder:
-    image: ghcr.io/espressosystems/espresso-sequencer/permissionless-builder:main
+    image: ghcr.io/espressosystems/espresso-sequencer/builder:main
     ports:
       - "$ESPRESSO_BUILDER_SERVER_PORT:$ESPRESSO_BUILDER_SERVER_PORT"
     environment:
