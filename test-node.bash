@@ -250,7 +250,7 @@ if $blockscout; then
     NODES="$NODES blockscout"
 fi
 if $espresso; then
-    NODES="$NODES orchestrator espresso-sequencer0 espresso-sequencer1 commitment-task"
+    NODES="$NODES orchestrator espresso-sequencer0 espresso-sequencer1 commitment-task permissionless-builder"
 
 fi
 if $force_build; then
