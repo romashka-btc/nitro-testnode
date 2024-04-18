@@ -559,7 +559,7 @@ services:
       retries: 20
 
   permissionless-builder:
-    image: ghcr.io/espressosystems/espresso-sequencer/builder:main
+    image: ghcr.io/espressosystems/espresso-sequencer/builder:ma-builder-ecdsa-signature
     ports:
       - "$ESPRESSO_BUILDER_SERVER_PORT:$ESPRESSO_BUILDER_SERVER_PORT"
     environment:
