@@ -362,7 +362,7 @@ if $force_init; then
 
     if $espresso; then
         echo == Deploying Espresso Contract
-        docker compose up -d commitment-task deploy-contracts espresso-sequencer0 espresso-sequencer1 --wait
+        docker compose up -d commitment-task deploy-contracts espresso-sequencer0 espresso-sequencer1 permissionless-builder --wait
         addr=`curl http://localhost:60000/api/hotshot_contract`
         echo $addr
     fi
@@ -378,7 +378,7 @@ if $force_init; then
         docker compose run scripts write-config --simple
     else
         echo == Writing configs
-        docker compose run scripts write-config --espresso $espresso --hotshot-address $hotShotAddr --light-client-address $lightClientAddr
+        docker compose run scripts write-config --espresso $espresso --lightClientAddress $lightClientAddr
 
         echo == Initializing redis
         docker compose up --wait redis
