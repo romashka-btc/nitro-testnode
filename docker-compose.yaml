@@ -571,8 +571,8 @@ services:
     depends_on:
       espresso-sequencer0:
         condition: service_healthy
-        geth:
-          condition: service_started
+      geth:
+        condition: service_started
       deploy-contracts:
         condition: service_completed_successfully
     extra_hosts:

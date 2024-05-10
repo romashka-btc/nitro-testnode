@@ -223,7 +223,7 @@ function writeConfigs(argv: any) {
 					"jwtsecret": valJwtSecret,
 				},
                 "espresso": false,
-                "hotshot-address": "",
+                "light-client-address": "",
                 "dangerous": {"reset-block-validation": false},
             },
             "feed": {
@@ -280,7 +280,7 @@ function writeConfigs(argv: any) {
         validatorConfig.node.staker["use-smart-contract-wallet"] = true
         if (argv.espresso) {
             validatorConfig.node["block-validator"]["espresso"] = true
-            validatorConfig.node["block-validator"]["hotshot-address"] = argv.hotshotAddress
+            validatorConfig.node["block-validator"]["light-client-address"] = argv.lightClientAddress
             validatorConfig.node["block-validator"]["dangerous"]["reset-block-validation"] = true
         }
         let validconfJSON = JSON.stringify(validatorConfig)
