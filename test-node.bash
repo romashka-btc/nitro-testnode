@@ -250,7 +250,7 @@ if $blockscout; then
     NODES="$NODES blockscout"
 fi
 if $espresso; then
-    NODES="$NODES orchestrator espresso-sequencer0 espresso-sequencer1 commitment-task permissionless-builder"
+    NODES="$NODES espresso-dev-node"
 
 fi
 if $force_build; then
@@ -264,7 +264,11 @@ if $force_build; then
         echo execute from a sub-directory of nitro or use NITRO_SRC environment variable
         exit 1
     fi
-    docker build "$NITRO_SRC" -t nitro-node-dev --target nitro-node-dev
+    if $espresso; then
+        docker build "$NITRO_SRC" -t nitro-node-dev --target nitro-node-dev -f "${NITRO_SRC}/Dockerfile.espresso"
+    else
+        docker build "$NITRO_SRC" -t nitro-node-dev --target nitro-node-dev -f 
+    fi
   fi
   if $dev_build_blockscout; then
     if $blockscout; then
@@ -361,11 +365,11 @@ if $force_init; then
     docker compose run scripts write-l2-chain-config --espresso $espresso
 
     if $espresso; then
-        echo == Deploying Espresso Contract
-        docker compose up -d commitment-task deploy-contracts espresso-sequencer0 espresso-sequencer1 permissionless-builder --wait
-        addr=`curl http://localhost:45000/api/hotshot_contract`
-        echo $addr
+        echo == Deploying Espresso Network
+        docker compose up -d espresso-dev-node --wait
+        echo == Done deploying the espresso network
     fi
+
 
     sequenceraddress=`docker compose run scripts print-address --account sequencer | tail -n 1 | tr -d '\r\n'`
     l2ownerAddress=`docker compose run scripts print-address --account l2owner | tail -n 1 | tr -d '\r\n'`
