@@ -34,7 +34,6 @@ async function main() {
     .options({
       espresso: { boolean: true, decription: 'use Espresso Sequencer for sequencing and DA', default: false },
       espressoUrl: { string: true, description: 'Espresso Sequencer url', default: 'http://espresso-dev-node:41000' },
-      hotshotAddress: { string: true, description: 'address of the HotShot contract', default: '' },
       lightClientAddress: { string: true, description: 'address of the light client contract', default: ''},
     })
     .command(bridgeFundsCommand)
