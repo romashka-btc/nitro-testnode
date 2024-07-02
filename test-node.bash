@@ -250,7 +250,11 @@ if $blockscout; then
     NODES="$NODES blockscout"
 fi
 if $espresso; then
-    NODES="$NODES espresso-dev-node"
+    if $force_build; then
+        INITIAL_SEQ_NODES="$INITIAL_SEQ_NODES espresso-dev-node"
+    else
+        NODES="$NODES espresso-dev-node"
+    fi
 
 fi
 if $force_build; then
@@ -267,7 +271,7 @@ if $force_build; then
     if $espresso; then
         docker build "$NITRO_SRC" -t nitro-node-dev --target nitro-node-dev -f "${NITRO_SRC}/Dockerfile.espresso"
     else
-        docker build "$NITRO_SRC" -t nitro-node-dev --target nitro-node-dev -f 
+        docker build "$NITRO_SRC" -t nitro-node-dev --target nitro-node-dev -f
     fi
   fi
   if $dev_build_blockscout; then
@@ -363,13 +367,6 @@ if $force_init; then
 
     echo == Writing l2 chain config
     docker compose run scripts write-l2-chain-config --espresso $espresso
-
-    if $espresso; then
-        echo == Deploying Espresso Network
-        docker compose up -d espresso-dev-node --wait
-        echo == Done deploying the espresso network
-    fi
-
 
     sequenceraddress=`docker compose run scripts print-address --account sequencer | tail -n 1 | tr -d '\r\n'`
     l2ownerAddress=`docker compose run scripts print-address --account l2owner | tail -n 1 | tr -d '\r\n'`
