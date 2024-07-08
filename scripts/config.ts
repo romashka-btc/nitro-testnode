@@ -361,34 +361,34 @@ function writeConfigs(argv: any) {
 
 function writeL2ChainConfig(argv: any) {
     const l2ChainConfig = {
-		"chainId": 412346,
-		"homesteadBlock": 0,
-		"daoForkSupport": true,
-		"eip150Block": 0,
-		"eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-		"eip155Block": 0,
+        "chainId": 412346,
+        "homesteadBlock": 0,
+        "daoForkSupport": true,
+        "eip150Block": 0,
+        "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "eip155Block": 0,
+        "eip158Block": 0,
         "espresso": argv.espresso,
-		"eip158Block": 0,
-		"byzantiumBlock": 0,
-		"constantinopleBlock": 0,
-		"petersburgBlock": 0,
-		"istanbulBlock": 0,
-		"muirGlacierBlock": 0,
-		"berlinBlock": 0,
-		"londonBlock": 0,
-		"clique": {
-			"period": 0,
-			"epoch": 0
-		},
-		"arbitrum": {
-			"EnableArbOS": true,
-			"AllowDebugPrecompiles": true,
-			"DataAvailabilityCommittee": false,
-			"InitialArbOSVersion": 11,
-			"InitialChainOwner": argv.l2owner,
-			"GenesisBlockNum": 0,
+        "byzantiumBlock": 0,
+        "constantinopleBlock": 0,
+        "petersburgBlock": 0,
+        "istanbulBlock": 0,
+        "muirGlacierBlock": 0,
+        "berlinBlock": 0,
+        "londonBlock": 0,
+        "clique": {
+            "period": 0,
+            "epoch": 0
+        },
+        "arbitrum": {
+            "EnableArbOS": true,
+            "AllowDebugPrecompiles": true,
+            "DataAvailabilityCommittee": false,
+            "InitialArbOSVersion": 30,
+            "InitialChainOwner": argv.l2owner,
+            "GenesisBlockNum": 0,
 			"EnableEspresso": false,
-		}
+        }
     }
     if (argv.espresso) {
         l2ChainConfig.arbitrum.EnableEspresso = true
@@ -421,8 +421,8 @@ function writeL3ChainConfig(argv: any) {
             "EnableArbOS": true,
             "AllowDebugPrecompiles": true,
             "DataAvailabilityCommittee": false,
-            "InitialArbOSVersion": 11,
-            "InitialChainOwner": "0x0000000000000000000000000000000000000000",
+            "InitialArbOSVersion": 30,
+            "InitialChainOwner": argv.l2owner,
             "GenesisBlockNum": 0
         }
     }

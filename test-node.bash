@@ -2,9 +2,23 @@
 
 set -e
 
-NITRO_NODE_VERSION=offchainlabs/nitro-node:v2.2.2-8f33fea-dev
+NITRO_NODE_VERSION=offchainlabs/nitro-node:v3.0.1-cf4b74e-dev
 ESPRESSO_VERSION=ghcr.io/espressosystems/nitro-espresso-integration/nitro-node-dev:integration
 BLOCKSCOUT_VERSION=offchainlabs/blockscout:v1.0.0-c8db5b1
+
+# This commit matches the v1.2.1 contracts, with additional support for CacheManger deployment.
+# Once v1.2.2 is released, we can switch to that version.
+DEFAULT_NITRO_CONTRACTS_VERSION="867663657b98a66b60ff244e46226e0cb368ab94"
+DEFAULT_TOKEN_BRIDGE_VERSION="v1.2.1"
+
+# Set default versions if not overriden by provided env vars
+: ${NITRO_CONTRACTS_BRANCH:=$DEFAULT_NITRO_CONTRACTS_VERSION}
+: ${TOKEN_BRIDGE_BRANCH:=$DEFAULT_TOKEN_BRIDGE_VERSION}
+export NITRO_CONTRACTS_BRANCH
+export TOKEN_BRIDGE_BRANCH
+
+echo "Using NITRO_CONTRACTS_BRANCH: $NITRO_CONTRACTS_BRANCH"
+echo "Using TOKEN_BRIDGE_BRANCH: $TOKEN_BRIDGE_BRANCH"
 
 mydir=`dirname $0`
 cd "$mydir"
@@ -56,6 +70,10 @@ while [[ $# -gt 0 ]]; do
                     exit 0
                 fi
             fi
+            shift
+            ;;
+        --init-force)
+            force_init=true
             shift
             ;;
         --dev)
@@ -177,6 +195,7 @@ while [[ $# -gt 0 ]]; do
             echo --init            remove all data, rebuild, deploy new rollup
             echo --pos             l1 is a proof-of-stake chain \(using prysm for consensus\)
             echo --validate        heavy computation, validating all blocks in WASM
+            echo --l3node          deploys an L3 node on top of the L2
             echo --l3-fee-token    L3 chain is set up to use custom fee token. Only valid if also '--l3node' is provided
             echo --l3-token-bridge Deploy L2-L3 token bridge. Only valid if also '--l3node' is provided
             echo --batchposters    batch posters [0-3]
@@ -184,6 +203,7 @@ while [[ $# -gt 0 ]]; do
             echo --detach          detach from nodes after running them
             echo --blockscout      build or launch blockscout
             echo --simple          run a simple configuration. one node as sequencer/batch-poster/staker \(default unless using --dev\)
+            echo --tokenbridge     deploy L1-L2 token bridge.
             echo --no-tokenbridge  don\'t build or launch tokenbridge
             echo --no-run          does not launch nodes \(useful with build or init\)
             echo --no-simple       run a full configuration with separate sequencer/batch-poster/validator/relayer
@@ -248,6 +268,7 @@ fi
 if $blockscout; then
     NODES="$NODES blockscout"
 fi
+
 if $espresso; then
     if $force_build; then
         INITIAL_SEQ_NODES="$INITIAL_SEQ_NODES espresso-dev-node"
@@ -278,7 +299,8 @@ if $force_build; then
       docker build blockscout -t blockscout -f blockscout/docker/Dockerfile
     fi
   fi
-  LOCAL_BUILD_NODES=scripts
+
+  LOCAL_BUILD_NODES="scripts rollupcreator"
   if $tokenbridge || $l3_token_bridge; then
     LOCAL_BUILD_NODES="$LOCAL_BUILD_NODES tokenbridge"
   fi
@@ -364,14 +386,18 @@ if $force_init; then
     docker compose run scripts send-l1 --ethamount 1000 --to user_l1user --wait
     docker compose run scripts send-l1 --ethamount 0.0001 --from user_l1user --to user_l1user_b --wait --delay 500 --times 1000000 > /dev/null &
 
-    echo == Writing l2 chain config
-    docker compose run scripts write-l2-chain-config --espresso $espresso
-
-    sequenceraddress=`docker compose run scripts print-address --account sequencer | tail -n 1 | tr -d '\r\n'`
     l2ownerAddress=`docker compose run scripts print-address --account l2owner | tail -n 1 | tr -d '\r\n'`
 
-    docker compose run --entrypoint /usr/local/bin/deploy sequencer --l1conn ws://geth:8546 --l1keystore /home/user/l1keystore --sequencerAddress $sequenceraddress --ownerAddress $l2ownerAddress --l1DeployAccount $l2ownerAddress --l1deployment /config/deployment.json --authorizevalidators 10 --wasmrootpath /home/user/target/machines --l1chainid=$l1chainid --l2chainconfig /config/l2_chain_config.json --l2chainname arb-dev-test --l2chaininfo /config/deployed_chain_info.json
-    docker compose run --entrypoint sh sequencer -c "jq [.[]] /config/deployed_chain_info.json > /config/l2_chain_info.json"
+    echo == Writing l2 chain config
+    docker compose run scripts --l2owner $l2ownerAddress  write-l2-chain-config --espresso $espresso
+
+    sequenceraddress=`docker compose run scripts print-address --account sequencer | tail -n 1 | tr -d '\r\n'`
+    l2ownerKey=`docker compose run scripts print-private-key --account l2owner | tail -n 1 | tr -d '\r\n'`
+    wasmroot=`docker compose run --entrypoint sh sequencer -c "cat /home/user/target/machines/latest/module-root.txt"`
+
+    echo == Deploying L2 chain
+    docker compose run -e PARENT_CHAIN_RPC="http://geth:8545" -e DEPLOYER_PRIVKEY=$l2ownerKey -e PARENT_CHAIN_ID=$l1chainid -e CHILD_CHAIN_NAME="arb-dev-test" -e MAX_DATA_SIZE=117964 -e OWNER_ADDRESS=$l2ownerAddress -e WASM_MODULE_ROOT=$wasmroot -e SEQUENCER_ADDRESS=$sequenceraddress -e AUTHORIZE_VALIDATORS=10 -e CHILD_CHAIN_CONFIG_PATH="/config/l2_chain_config.json" -e CHAIN_DEPLOYMENT_INFO="/config/deployment.json" -e CHILD_CHAIN_INFO="/config/deployed_chain_info.json" rollupcreator create-rollup-testnode
+    docker compose run --entrypoint sh rollupcreator -c "jq [.[]] /config/deployed_chain_info.json > /config/l2_chain_info.json"
 
     if $simple; then
         echo == Writing configs
@@ -389,7 +415,7 @@ if $force_init; then
     docker compose up --wait $INITIAL_SEQ_NODES
     docker compose run scripts bridge-funds --ethamount 100000 --wait
     docker compose run scripts send-l2 --ethamount 10000 --to espresso-sequencer --wait
-    docker compose run scripts bridge-funds --ethamount 1000 --wait --from "key_0x$devprivkey"
+    docker compose run scripts send-l2 --ethamount 100 --to l2owner --wait
 
     if $tokenbridge; then
         echo == Deploying L1-L2 token bridge
@@ -400,6 +426,10 @@ if $force_init; then
         docker compose run --entrypoint sh tokenbridge -c "cat network.json && cp network.json l1l2_network.json && cp network.json localNetwork.json"
         echo
     fi
+
+    echo == Deploy CacheManager on L2
+    docker compose run -e CHILD_CHAIN_RPC="http://sequencer:8547" -e CHAIN_OWNER_PRIVKEY=$l2ownerKey rollupcreator deploy-cachemanager-testnode
+
 
     if $l3node; then
         echo == Funding l3 users
@@ -419,20 +449,23 @@ if $force_init; then
         docker compose run scripts send-l2 --ethamount 0.0001 --from user_traffic_generator --to user_fee_token_deployer --wait --delay 500 --times 1000000 > /dev/null &
 
         echo == Writing l3 chain config
-        docker compose run scripts write-l3-chain-config
+        l3owneraddress=`docker compose run scripts print-address --account l3owner | tail -n 1 | tr -d '\r\n'`
+        echo l3owneraddress $l3owneraddress
+        docker compose run scripts --l2owner $l3owneraddress  write-l3-chain-config
 
         if $l3_custom_fee_token; then
             echo == Deploying custom fee token
             nativeTokenAddress=`docker compose run scripts create-erc20 --deployer user_fee_token_deployer --mintTo user_token_bridge_deployer --bridgeable $tokenbridge | tail -n 1 | awk '{ print $NF }'`
-            EXTRA_L3_DEPLOY_FLAG="--nativeTokenAddress $nativeTokenAddress"
+            docker compose run scripts transfer-erc20 --token $nativeTokenAddress --amount 100 --from user_token_bridge_deployer --to l3owner
+            EXTRA_L3_DEPLOY_FLAG="-e FEE_TOKEN_ADDRESS=$nativeTokenAddress"
         fi
 
         echo == Deploying L3
-        l3owneraddress=`docker compose run scripts print-address --account l3owner | tail -n 1 | tr -d '\r\n'`
         l3ownerkey=`docker compose run scripts print-private-key --account l3owner | tail -n 1 | tr -d '\r\n'`
         l3sequenceraddress=`docker compose run scripts print-address --account l3sequencer | tail -n 1 | tr -d '\r\n'`
-        docker compose run --entrypoint /usr/local/bin/deploy sequencer --l1conn ws://sequencer:8548 --l1keystore /home/user/l1keystore --sequencerAddress $l3sequenceraddress --ownerAddress $l3owneraddress --l1DeployAccount $l3owneraddress --l1deployment /config/l3deployment.json --authorizevalidators 10 --wasmrootpath /home/user/target/machines --l1chainid=412346 --l2chainconfig /config/l3_chain_config.json --l2chainname orbit-dev-test --l2chaininfo /config/deployed_l3_chain_info.json --maxDataSize 104857 $EXTRA_L3_DEPLOY_FLAG
-        docker compose run --entrypoint sh sequencer -c "jq [.[]] /config/deployed_l3_chain_info.json > /config/l3_chain_info.json"
+
+        docker compose run -e DEPLOYER_PRIVKEY=$l3ownerkey -e PARENT_CHAIN_RPC="http://sequencer:8547" -e PARENT_CHAIN_ID=412346 -e CHILD_CHAIN_NAME="orbit-dev-test" -e MAX_DATA_SIZE=104857 -e OWNER_ADDRESS=$l3owneraddress -e WASM_MODULE_ROOT=$wasmroot -e SEQUENCER_ADDRESS=$l3sequenceraddress -e AUTHORIZE_VALIDATORS=10 -e CHILD_CHAIN_CONFIG_PATH="/config/l3_chain_config.json" -e CHAIN_DEPLOYMENT_INFO="/config/l3deployment.json" -e CHILD_CHAIN_INFO="/config/deployed_l3_chain_info.json" $EXTRA_L3_DEPLOY_FLAG rollupcreator create-rollup-testnode
+        docker compose run --entrypoint sh rollupcreator -c "jq [.[]] /config/deployed_l3_chain_info.json > /config/l3_chain_info.json"
 
         echo == Funding l3 funnel and dev key
         docker compose up --wait l3node sequencer
@@ -459,8 +492,11 @@ if $force_init; then
             docker compose run scripts send-l3 --ethamount 500 --from user_token_bridge_deployer --to "key_0x$devprivkey" --wait
         else
             docker compose run scripts bridge-to-l3 --ethamount 50000 --wait
-            docker compose run scripts bridge-to-l3 --ethamount 500 --wait --from "key_0x$devprivkey"
         fi
+        docker compose run scripts send-l3 --ethamount 100 --to l3owner --wait
+
+        echo == Deploy CacheManager on L3
+        docker compose run -e CHILD_CHAIN_RPC="http://l3node:3347" -e CHAIN_OWNER_PRIVKEY=$l3ownerkey rollupcreator deploy-cachemanager-testnode
 
     fi
 fi

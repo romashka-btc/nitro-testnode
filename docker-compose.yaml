@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   blockscout:
     depends_on:
@@ -152,6 +151,7 @@ services:
   sequencer:
     pid: host # allow debugging
     image: nitro-node-dev-testnode
+    entrypoint: /usr/local/bin/nitro
     ports:
       - "127.0.0.1:8547:8547"
       - "127.0.0.1:8548:8548"
@@ -168,6 +168,7 @@ services:
   sequencer_b:
     pid: host # allow debugging
     image: nitro-node-dev-testnode
+    entrypoint: /usr/local/bin/nitro
     ports:
       - "127.0.0.1:8647:8547"
       - "127.0.0.1:8648:8548"
@@ -182,6 +183,7 @@ services:
   sequencer_c:
     pid: host # allow debugging
     image: nitro-node-dev-testnode
+    entrypoint: /usr/local/bin/nitro
     ports:
       - "127.0.0.1:8747:8547"
       - "127.0.0.1:8748:8548"
@@ -196,6 +198,7 @@ services:
   sequencer_d:
     pid: host # allow debugging
     image: nitro-node-dev-testnode
+    entrypoint: /usr/local/bin/nitro
     ports:
       - "127.0.0.1:8847:8547"
       - "127.0.0.1:8848:8548"
@@ -210,6 +213,7 @@ services:
   staker-unsafe:
     pid: host # allow debugging
     image: nitro-node-dev-testnode
+    entrypoint: /usr/local/bin/nitro
     ports:
       - "127.0.0.1:8047:8547"
       - "127.0.0.1:8048:8548"
@@ -226,6 +230,7 @@ services:
   poster:
     pid: host # allow debugging
     image: nitro-node-dev-testnode
+    entrypoint: /usr/local/bin/nitro
     ports:
       - "127.0.0.1:8147:8547"
       - "127.0.0.1:8148:8548"
@@ -241,6 +246,7 @@ services:
   poster_b:
     pid: host # allow debugging
     image: nitro-node-dev-testnode
+    entrypoint: /usr/local/bin/nitro
     ports:
       - "127.0.0.1:9147:8547"
       - "127.0.0.1:9148:8548"
@@ -256,6 +262,7 @@ services:
   poster_c:
     pid: host # allow debugging
     image: nitro-node-dev-testnode
+    entrypoint: /usr/local/bin/nitro
     ports:
       - "127.0.0.1:9247:8547"
       - "127.0.0.1:9248:8548"
@@ -271,6 +278,7 @@ services:
   validator:
     pid: host # allow debugging
     image: nitro-node-dev-testnode
+    entrypoint: /usr/local/bin/nitro
     ports:
       - "127.0.0.1:8247:8547"
       - "127.0.0.1:8248:8548"
@@ -286,6 +294,7 @@ services:
   l3node:
     pid: host # allow debugging
     image: nitro-node-dev-testnode
+    entrypoint: /usr/local/bin/nitro
     ports:
       - "127.0.0.1:3347:3347"
       - "127.0.0.1:3348:3348"
@@ -301,12 +310,12 @@ services:
   validation_node:
     pid: host # allow debugging
     image: nitro-node-dev-testnode
+    entrypoint: /usr/local/bin/nitro-val
     ports:
       - "127.0.0.1:8949:8549"
     volumes:
       - "config:/config"
     command: --conf.file /config/validation_node_config.json
-    entrypoint: /usr/local/bin/nitro-val
 
   scripts:
     build: scripts/
@@ -318,22 +327,38 @@ services:
   relay:
     pid: host
     image: nitro-node-dev-testnode
+    entrypoint: /usr/local/bin/relay
     ports:
       - "127.0.0.1:9652:9652"
-    entrypoint: bin/relay
-    command: --node.feed.output.port 9652 --node.feed.input.url ws://sequencer:9652
+    command: --chain.id 412346 --node.feed.input.url ws://sequencer:9642 --node.feed.output.port 9652
 
   tokenbridge:
     depends_on:
       - geth
       - sequencer
     pid: host
-    build: tokenbridge/
+    build:
+      context: tokenbridge/
+      args:
+        TOKEN_BRIDGE_BRANCH: ${TOKEN_BRIDGE_BRANCH:-}
     environment:
       - ARB_URL=http://sequencer:8547
       - ETH_URL=http://geth:8545
     volumes:
       - "tokenbridge-data:/workspace"
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  rollupcreator:
+    depends_on:
+      - geth
+      - sequencer
+    pid: host
+    build:
+      context: rollupcreator/
+      args:
+        NITRO_CONTRACTS_BRANCH: ${NITRO_CONTRACTS_BRANCH:-}
+    volumes:
+      - "config:/config"
       - /var/run/docker.sock:/var/run/docker.sock
 
   espresso-dev-node:
