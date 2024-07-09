@@ -14,6 +14,7 @@ import {
   bridgeNativeTokenToL3Command,
   bridgeToL3Command,
   createERC20Command,
+  transferERC20Command,
   sendL1Command,
   sendL2Command,
   sendL3Command,
@@ -33,14 +34,14 @@ async function main() {
     .options(stressOptions)
     .options({
       espresso: { boolean: true, decription: 'use Espresso Sequencer for sequencing and DA', default: false },
-      espressoUrl: { string: true, description: 'Espresso Sequencer url', default: 'http://espresso-sequencer0:44000' },
-      hotshotAddress: { string: true, description: 'address of the HotShot contract', default: '' },
+      espressoUrl: { string: true, description: 'Espresso Sequencer url', default: 'http://espresso-dev-node:41000' },
       lightClientAddress: { string: true, description: 'address of the light client contract', default: ''},
     })
     .command(bridgeFundsCommand)
     .command(bridgeToL3Command)
     .command(bridgeNativeTokenToL3Command)
     .command(createERC20Command)
+    .command(transferERC20Command)
     .command(sendL1Command)
     .command(sendL2Command)
     .command(sendL3Command)
