@@ -289,7 +289,7 @@ if $force_build; then
         exit 1
     fi
     if $espresso; then
-        docker build "$NITRO_SRC" -t nitro-node-dev --target nitro-node-dev -f "${NITRO_SRC}/Dockerfile.espresso"
+        docker build "$NITRO_SRC" -t nitro-node-dev --target nitro-node-dev -f "${NITRO_SRC}/Dockerfile"
     else
         docker build "$NITRO_SRC" -t nitro-node-dev --target nitro-node-dev -f
     fi
