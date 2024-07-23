@@ -288,11 +288,7 @@ if $force_build; then
         echo execute from a sub-directory of nitro or use NITRO_SRC environment variable
         exit 1
     fi
-    if $espresso; then
-        docker build "$NITRO_SRC" -t nitro-node-dev --target nitro-node-dev -f "${NITRO_SRC}/Dockerfile.espresso"
-    else
-        docker build "$NITRO_SRC" -t nitro-node-dev --target nitro-node-dev -f
-    fi
+    docker build "$NITRO_SRC" -t nitro-node-dev --target nitro-node-dev -f
   fi
   if $dev_build_blockscout; then
     if $blockscout; then
