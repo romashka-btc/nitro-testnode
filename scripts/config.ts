@@ -29,6 +29,8 @@ SLOTS_PER_EPOCH: 6
 DEPOSIT_CONTRACT_ADDRESS: 0x4242424242424242424242424242424242424242
     `
     fs.writeFileSync(path.join(consts.configpath, "prysm.yaml"), prysm)
+    fs.writeFileSync(path.join(consts.espressoconfigpath, "prysm.yaml"), prysm)
+
 }
 
 function writeGethGenesisConfig(argv: any) {
@@ -144,10 +146,13 @@ function writeGethGenesisConfig(argv: any) {
     }
     `
     fs.writeFileSync(path.join(consts.configpath, "geth_genesis.json"), gethConfig)
+    fs.writeFileSync(path.join(consts.espressoconfigpath, "geth_genesis.json"), gethConfig)
     const jwt = `0x98ea6e4f216f2fb4b69fff9b3a44842c38686ca685f3f55dc48c5d3fb1107be4`
     fs.writeFileSync(path.join(consts.configpath, "jwt.hex"), jwt)
+    fs.writeFileSync(path.join(consts.espressoconfigpath, "jwt.hex"), jwt)
     const val_jwt = `0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`
     fs.writeFileSync(path.join(consts.configpath, "val_jwt.hex"), val_jwt)
+    fs.writeFileSync(path.join(consts.espressoconfigpath, "val_jwt.hex"), val_jwt)
 }
 
 function writeConfigs(argv: any) {
@@ -499,6 +504,8 @@ function writeL2ChainConfig(argv: any) {
     }
     const l2ChainConfigJSON = JSON.stringify(l2ChainConfig)
     fs.writeFileSync(path.join(consts.configpath, "l2_chain_config.json"), l2ChainConfigJSON)
+    fs.writeFileSync(path.join(consts.espressoconfigpath, "l2_chain_config.json"), l2ChainConfigJSON)
+
 }
 
 function writeL3ChainConfig(argv: any) {
@@ -532,6 +539,7 @@ function writeL3ChainConfig(argv: any) {
     }
     const l3ChainConfigJSON = JSON.stringify(l3ChainConfig)
     fs.writeFileSync(path.join(consts.configpath, "l3_chain_config.json"), l3ChainConfigJSON)
+    fs.writeFileSync(path.join(consts.espressoconfigpath, "l3_chain_config.json"), l3ChainConfigJSON)
 }
 
 export const writeConfigCommand = {
