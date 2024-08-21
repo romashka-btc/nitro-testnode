@@ -153,7 +153,106 @@ function writeGethGenesisConfig(argv: any) {
 function writeConfigs(argv: any) {
     const valJwtSecret = path.join(consts.configpath, "val_jwt.hex")
     const chainInfoFile = path.join(consts.configpath, "l2_chain_info.json")
-    const baseConfig = {
+    const baseConfig ={
+        "parent-chain": {
+            "connection": {
+                "url": argv.l1url,
+            },
+        },
+        "chain": {
+            "id": 412346,
+            "info-files": [chainInfoFile],
+        },
+        "node": {
+            "staker": {
+                "dangerous": {
+                    "without-block-validator": false
+                },
+                "parent-chain-wallet" : {
+                    "account": namedAddress("validator"),
+                    "password": consts.l1passphrase,
+                    "pathname": consts.l1keystore,    
+                },
+                "disable-challenge": false,
+                "enable": false,
+                "staker-interval": "10s",
+                "make-assertion-interval": "10s",
+                "strategy": "MakeNodes",
+            },
+            "sequencer": false,
+            "dangerous": {
+                "no-sequencer-coordinator": false,
+                "disable-blob-reader": true,
+            },
+            "delayed-sequencer": {
+                "enable": false
+            },
+            "seq-coordinator": {
+                "enable": false,
+                "redis-url": argv.redisUrl,
+                "lockout-duration": "30s",
+                "lockout-spare": "1s",
+                "my-url": "",
+                "retry-interval": "0.5s",
+                "seq-num-duration": "24h0m0s",
+                "update-interval": "3s",
+            },
+            "batch-poster": {
+                "enable": false,
+                "redis-url": argv.redisUrl,
+                "max-delay": "30s",
+                "l1-block-bound": "ignore",
+                "parent-chain-wallet" : {
+                    "account": namedAddress("sequencer"),
+                    "password": consts.l1passphrase,
+                    "pathname": consts.l1keystore,    
+                },
+                "data-poster": {
+                    "redis-signer": {
+                        "signing-key": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+                    },
+                    "wait-for-l1-finality": false
+                },
+            },
+            "block-validator": {
+				"validation-server" : {
+					"url": argv.validationNodeUrl,
+					"jwtsecret": valJwtSecret,
+				},
+                "dangerous": {"reset-block-validation": false},
+            },
+            "feed": {
+                "input": {
+                    "url": [], // websocket urls
+                },
+                "output": {
+                    "enable": false,
+                    "signed": false,
+                    "addr": "0.0.0.0",
+                },
+            }
+        },
+        "execution": {
+            "sequencer": {
+                "enable": false,
+            },
+            "forwarding-target": "null",
+        },
+        "persistent": {
+            "chain": "local",
+            "db-engine": "leveldb"
+        },
+        "ws": {
+            "addr": "0.0.0.0"
+        },
+        "http": {
+            "addr": "0.0.0.0",
+            "vhosts": "*",
+            "corsdomain": "*"
+        },
+    }
+
+    const espressoConfig = {
         "parent-chain": {
             "connection": {
                 "url": argv.l1url,
@@ -257,10 +356,9 @@ function writeConfigs(argv: any) {
             "vhosts": "*",
             "corsdomain": "*"
         },
-    }
-
-
-    const baseConfJSON = JSON.stringify(baseConfig)
+    } 
+    //conditionally use the espresso compliant config, or the base config based on the espresso portion being passed in via argv
+    const baseConfJSON = (argv.espresso) ? JSON.stringify(espressoConfig) : JSON.stringify(baseConfig)
 
     if (argv.simple) {
         let simpleConfig = JSON.parse(baseConfJSON)
@@ -274,6 +372,7 @@ function writeConfigs(argv: any) {
         simpleConfig.node["batch-poster"]["redis-url"] = ""
         simpleConfig.execution["sequencer"].enable = true
         fs.writeFileSync(path.join(consts.configpath, "sequencer_config.json"), JSON.stringify(simpleConfig))
+        fs.writeFileSync(path.join(consts.espressoconfigpath, "sequencer_config.json"), JSON.stringify(simpleConfig))
     } else {
         let validatorConfig = JSON.parse(baseConfJSON)
         validatorConfig.node.staker.enable = true
@@ -285,10 +384,12 @@ function writeConfigs(argv: any) {
         }
         let validconfJSON = JSON.stringify(validatorConfig)
         fs.writeFileSync(path.join(consts.configpath, "validator_config.json"), validconfJSON)
+        fs.writeFileSync(path.join(consts.espressoconfigpath, "validator_config.json"), validconfJSON)
 
         let unsafeStakerConfig = JSON.parse(validconfJSON)
         unsafeStakerConfig.node.staker.dangerous["without-block-validator"] = true
         fs.writeFileSync(path.join(consts.configpath, "unsafe_staker_config.json"), JSON.stringify(unsafeStakerConfig))
+        fs.writeFileSync(path.join(consts.espressoconfigpath, "unsafe_staker_config.json"), JSON.stringify(unsafeStakerConfig))
 
         let sequencerConfig = JSON.parse(baseConfJSON)
         sequencerConfig.node.sequencer = true
@@ -304,6 +405,7 @@ function writeConfigs(argv: any) {
             sequencerConfig.node["seq-coordinator"].enable = true
         }
         fs.writeFileSync(path.join(consts.configpath, "sequencer_config.json"), JSON.stringify(sequencerConfig))
+        fs.writeFileSync(path.join(consts.espressoconfigpath, "sequencer_config.json"), JSON.stringify(sequencerConfig))
 
         let posterConfig = JSON.parse(baseConfJSON)
     if (argv.espresso) {
@@ -315,6 +417,7 @@ function writeConfigs(argv: any) {
     }
         posterConfig.node["batch-poster"].enable = true
         fs.writeFileSync(path.join(consts.configpath, "poster_config.json"), JSON.stringify(posterConfig))
+        fs.writeFileSync(path.join(consts.espressoconfigpath, "poster_config.json"), JSON.stringify(posterConfig))
     }
 
     let l3Config = JSON.parse(baseConfJSON)
@@ -335,6 +438,7 @@ function writeConfigs(argv: any) {
     l3Config.node["batch-poster"].enable = true
     l3Config.node["batch-poster"]["redis-url"] = ""
     fs.writeFileSync(path.join(consts.configpath, "l3node_config.json"), JSON.stringify(l3Config))
+    fs.writeFileSync(path.join(consts.espressoconfigpath, "l3node_config.json"), JSON.stringify(l3Config))
 
     let validationNodeConfig = JSON.parse(JSON.stringify({
         "persistent": {
@@ -356,6 +460,7 @@ function writeConfigs(argv: any) {
         },
     }))
     fs.writeFileSync(path.join(consts.configpath, "validation_node_config.json"), JSON.stringify(validationNodeConfig))
+    fs.writeFileSync(path.join(consts.espressoconfigpath, "validation_node_config.json"), JSON.stringify(validationNodeConfig))
 }
 
 function writeL2ChainConfig(argv: any) {
