@@ -2,7 +2,7 @@
 set -euo pipefail
 
 #start espresso sequencer node
-docker compose up espresso-dev-node
+docker compose up espresso-dev-node --detach
 
 #Initialize a standard network not compatible with espresso.
 ./test-node.bash --simple --init --detach 
