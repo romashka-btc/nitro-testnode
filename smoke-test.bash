@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-./test-node.bash --espresso --latest-espresso-image --validate --tokenbridge --init --detach
+./test-node.bash --espresso --latest-espresso-image --validate --tokenbridge --init-force --detach
 
 # Sending L2 transaction
 ./test-node.bash script send-l2 --ethamount 100 --to user_l2user --wait
@@ -18,4 +18,4 @@ while true; do
   sleep 5
 done
 
-echo "Smoke test succeeded"
+docker compose down
