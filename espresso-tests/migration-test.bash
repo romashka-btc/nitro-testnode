@@ -29,7 +29,9 @@ cd ..
 export PRIVATE_KEY=`docker compose run scripts print-private-key --account l2owner | tail -n 1 | tr -d '\r\n'`
 
 # stupidly precise command to extract the upgrade-executors-address so that we can pass it to the test script.
-export UPGRADE_EXECUTOR='docker compose run scripts print-upgrade-executor-address | tail -n 6 | grep "upgrade" | cut -c 28-69' #if anything changes about the specific positions arbitrum writes data to json files this WILL break.
+#UPGRADE_EXECUTOR='docker compose run scripts print-upgrade-executor-address | tail -n 6 | grep "upgrade" | cut -c 28-69' #if anything changes about the specific positions arbitrum writes data to json files this WILL break.
+#echo $UPGRADE_EXECUTOR
+#export UPGRADE_EXECUTOR
 
 # enter orbit actions directory to run deployment scripts
 cd orbit-actions
