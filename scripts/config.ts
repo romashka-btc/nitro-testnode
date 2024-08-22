@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as consts from './consts'
+import rollup from '/config/l2_chain_info.json'
 import { namedAccount, namedAddress } from './accounts'
 
 const path = require("path");
@@ -444,6 +445,10 @@ function writeL3ChainConfig(argv: any) {
     fs.writeFileSync(path.join(consts.configpath, "l3_chain_config.json"), l3ChainConfigJSON)
 }
 
+function printUpgradeExecutorAddress(){
+    console.log(rollup)
+}
+
 export const writeConfigCommand = {
     command: "write-config",
     describe: "writes config files",
@@ -488,5 +493,13 @@ export const writeL3ChainConfigCommand = {
     describe: "writes l3 chain config file",
     handler: (argv: any) => {
         writeL3ChainConfig(argv)
+    }
+}
+
+export const printUpgradeExecutorAddressCommand = {
+    command: "print-upgrade-executor-address",
+    describe: "prints the address of the rollups upgrade executor",
+    handler: () => {
+        printUpgradeExecutorAddress()
     }
 }
