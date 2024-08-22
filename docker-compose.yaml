@@ -347,9 +347,8 @@ services:
     build: scripts/
     volumes:
       - "l1keystore:/home/user/l1keystore"
-      - "config-espresso:/config"
+      - "espresso-config:/config"
       - "tokenbridge-data:/tokenbridge-data"
-      - "espresso-config:/espresso-config"
 
   relay:
     pid: host
