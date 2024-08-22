@@ -165,7 +165,7 @@ services:
     depends_on:
       - geth
 
-  espresso-sequencer:
+  sequencer-on-espresso:
     pid: host # allow debugging
     image: espresso-integration-testnode
     entrypoint: /usr/local/bin/nitro

@@ -29,7 +29,6 @@ SLOTS_PER_EPOCH: 6
 DEPOSIT_CONTRACT_ADDRESS: 0x4242424242424242424242424242424242424242
     `
     fs.writeFileSync(path.join(consts.configpath, "prysm.yaml"), prysm)
-
 }
 
 function writeGethGenesisConfig(argv: any) {
@@ -154,7 +153,7 @@ function writeGethGenesisConfig(argv: any) {
 function writeConfigs(argv: any) {
     const valJwtSecret = path.join(consts.configpath, "val_jwt.hex")
     const chainInfoFile = path.join(consts.configpath, "l2_chain_info.json")
-    const baseConfig ={
+    const baseConfig = {
         "parent-chain": {
             "connection": {
                 "url": argv.l1url,
@@ -405,7 +404,6 @@ function writeL2ChainConfig(argv: any) {
     }
     const l2ChainConfigJSON = JSON.stringify(l2ChainConfig)
     fs.writeFileSync(path.join(consts.configpath, "l2_chain_config.json"), l2ChainConfigJSON)
-
 }
 
 function writeL3ChainConfig(argv: any) {
