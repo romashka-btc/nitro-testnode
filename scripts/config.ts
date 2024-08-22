@@ -213,16 +213,12 @@ function writeConfigs(argv: any) {
                     },
                     "wait-for-l1-finality": false
                 },
-                "hotshot-url": "",
-                "light-client-address": "",
             },
             "block-validator": {
 				"validation-server" : {
 					"url": argv.validationNodeUrl,
 					"jwtsecret": valJwtSecret,
 				},
-                "espresso": false,
-                "light-client-address": "",
                 "dangerous": {"reset-block-validation": false},
             },
             "feed": {
@@ -239,9 +235,6 @@ function writeConfigs(argv: any) {
         "execution": {
             "sequencer": {
                 "enable": false,
-                "espresso": false,
-                "hotshot-url": "",
-                "espresso-namespace": 412346,
             },
             "forwarding-target": "null",
         },
@@ -257,6 +250,17 @@ function writeConfigs(argv: any) {
             "vhosts": "*",
             "corsdomain": "*"
         },
+    }
+
+    if (argv.espresso) {
+        let config = baseConfig as any
+        config.node['block-validator']["espresso"] = false
+        config.node['block-validator']["light-client-address"] = ""
+        config.node["batch-poster"]["hotshot-url"] = ""
+        config.node["batch-poster"]["light-client-address"] = ""
+        config["execution"]["sequencer"]["espresso"] = false
+        config["execution"]["sequencer"]["hotshot-url"] = ""
+        config["execution"]["sequencer"]["espresso-namespace"] = 412346
     }
 
 
@@ -373,7 +377,6 @@ function writeL2ChainConfig(argv: any) {
         "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
         "eip155Block": 0,
         "eip158Block": 0,
-        "espresso": argv.espresso,
         "byzantiumBlock": 0,
         "constantinopleBlock": 0,
         "petersburgBlock": 0,
@@ -392,11 +395,12 @@ function writeL2ChainConfig(argv: any) {
             "InitialArbOSVersion": 30,
             "InitialChainOwner": argv.l2owner,
             "GenesisBlockNum": 0,
-			"EnableEspresso": false,
         }
     }
     if (argv.espresso) {
-        l2ChainConfig.arbitrum.EnableEspresso = true
+        let chainConfig = l2ChainConfig as any
+        chainConfig.arbitrum["EnableEspresso"] = true
+        chainConfig["espresso"] = true
     }
     const l2ChainConfigJSON = JSON.stringify(l2ChainConfig)
     fs.writeFileSync(path.join(consts.configpath, "l2_chain_config.json"), l2ChainConfigJSON)
@@ -411,7 +415,6 @@ function writeL3ChainConfig(argv: any) {
         "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
         "eip155Block": 0,
         "eip158Block": 0,
-        "espresso": argv.espresso,
         "byzantiumBlock": 0,
         "constantinopleBlock": 0,
         "petersburgBlock": 0,
@@ -430,11 +433,12 @@ function writeL3ChainConfig(argv: any) {
             "InitialArbOSVersion": 30,
             "InitialChainOwner": argv.l2owner,
             "GenesisBlockNum": 0,
-            "EnableEspresso": false
         }
     }
     if (argv.espresso) {
-        l3ChainConfig.arbitrum.EnableEspresso = true
+        let chainConfig = l3ChainConfig as any
+        chainConfig.arbitrum["EnableEspresso"] = true
+        chainConfig["espresso"] = true
     }
     const l3ChainConfigJSON = JSON.stringify(l3ChainConfig)
     fs.writeFileSync(path.join(consts.configpath, "l3_chain_config.json"), l3ChainConfigJSON)

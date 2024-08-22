@@ -3,15 +3,19 @@
 set -e
 
 NITRO_NODE_VERSION=offchainlabs/nitro-node:v3.0.1-cf4b74e-dev
-ESPRESSO_VERSION=ghcr.io/espressosystems/nitro-espresso-integration/nitro-node-dev:integration
 BLOCKSCOUT_VERSION=offchainlabs/blockscout:v1.0.0-c8db5b1
 
-DEFAULT_NITRO_CONTRACTS_VERSION="develop"
+DEFAULT_NITRO_CONTRACTS_REPO="https://github.com/OffchainLabs/nitro-contracts.git"
+DEFAULT_NITRO_CONTRACTS_VERSION="99c07a7db2fcce75b751c5a2bd4936e898cda065"
 DEFAULT_TOKEN_BRIDGE_VERSION="v1.2.2"
 
+ESPRESSO_VERSION=ghcr.io/espressosystems/nitro-espresso-integration/nitro-node-dev:integration
+
 # Set default versions if not overriden by provided env vars
+: ${NITRO_CONTRACTS_REPO:=$DEFAULT_NITRO_CONTRACTS_REPO}
 : ${NITRO_CONTRACTS_BRANCH:=$DEFAULT_NITRO_CONTRACTS_VERSION}
 : ${TOKEN_BRIDGE_BRANCH:=$DEFAULT_TOKEN_BRIDGE_VERSION}
+export NITRO_CONTRACTS_REPO
 export NITRO_CONTRACTS_BRANCH
 export TOKEN_BRIDGE_BRANCH
 
@@ -228,6 +232,16 @@ while [[ $# -gt 0 ]]; do
             exit 0
     esac
 done
+
+if $espresso; then
+    NITRO_CONTRACTS_REPO=https://github.com/EspressoSystems/nitro-contracts.git
+    NITRO_CONTRACTS_BRANCH=develop
+    export NITRO_CONTRACTS_REPO
+    export NITRO_CONTRACTS_BRANCH
+    echo "Running espresso mode"
+    echo "Using NITRO_CONTRACTS_REPO: $NITRO_CONTRACTS_REPO"
+    echo "Using NITRO_CONTRACTS_BRANCH: $NITRO_CONTRACTS_BRANCH"
+fi
 
 if $force_init; then
   force_build=true
