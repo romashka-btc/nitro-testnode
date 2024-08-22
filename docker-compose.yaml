@@ -323,6 +323,7 @@ services:
     depends_on:
       - sequencer
       - validation_node
+      - espresso-dev-node
 
   validation_node:
     pid: host # allow debugging
@@ -339,6 +340,14 @@ services:
     volumes:
       - "l1keystore:/home/user/l1keystore"
       - "config:/config"
+      - "tokenbridge-data:/tokenbridge-data"
+      - "espresso-config:/espresso-config"
+
+  scripts-espresso:
+    build: scripts/
+    volumes:
+      - "l1keystore:/home/user/l1keystore"
+      - "config-espresso:/config"
       - "tokenbridge-data:/tokenbridge-data"
       - "espresso-config:/espresso-config"
 
@@ -374,6 +383,7 @@ services:
     build:
       context: rollupcreator/
       args:
+        NITRO_CONTRACTS_REPO: ${NITRO_CONTRACTS_REPO:-}
         NITRO_CONTRACTS_BRANCH: ${NITRO_CONTRACTS_BRANCH:-}
     volumes:
       - "config:/config"
@@ -395,6 +405,18 @@ services:
       - ESPRESSO_DEV_NODE_PORT
       - RUST_LOG=info
       - RUST_LOG_FORMAT
+      - ESPRESSO_DEPLOYER_ALT_CHAIN_PROVIDERS
+      - ESPRESSO_DEPLOYER_ALT_MNEMONICS
+      - ESPRESSO_SEQUENCER_DEPLOYER_ALT_INDICES
+    depends_on:
+      - geth
+      - sequencer
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fL http://localhost:$ESPRESSO_DEV_NODE_PORT || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
