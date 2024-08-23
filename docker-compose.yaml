@@ -169,7 +169,7 @@ services:
     pid: host # allow debugging
     image: espresso-integration-testnode
     entrypoint: /usr/local/bin/nitro
-    ports:
+    ports:  
       - "127.0.0.1:8547:8547"
       - "127.0.0.1:8548:8548"
       - "127.0.0.1:9642:9642"
@@ -181,7 +181,7 @@ services:
     command: --conf.file /config/sequencer_config.json --node.feed.output.enable --node.feed.output.port 9642  --http.api net,web3,eth,txpool,debug --node.seq-coordinator.my-url  ws://sequencer:8548 --graphql.enable --graphql.vhosts * --graphql.corsdomain *
     depends_on:
       - geth
-
+  
   sequencer_b:
     pid: host # allow debugging
     image: nitro-node-dev-testnode
