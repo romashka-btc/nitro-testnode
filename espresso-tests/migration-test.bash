@@ -28,21 +28,25 @@ cd ..
 #export l2 owner private key
 export PRIVATE_KEY=`docker compose run scripts print-private-key --account l2owner | tail -n 1 | tr -d '\r\n'`
 
-# stupidly precise command to extract the upgrade-executors-address so that we can pass it to the test script.
-#UPGRADE_EXECUTOR='docker compose run scripts print-upgrade-executor-address | tail -n 6 | grep "upgrade" | cut -c 28-69' #if anything changes about the specific positions arbitrum writes data to json files this WILL break.
-#echo $UPGRADE_EXECUTOR
-#export UPGRADE_EXECUTOR
-
 # enter orbit actions directory to run deployment scripts
 cd orbit-actions
 
 #forge script to deploy new OSP entry and upgrade actions
-NEW_OSP_ENTRY=`forge script --chain $CHAIN_NAME ../orbit-actions/contracts/parent-chain/contract-upgrades/DeployEspressoOsp.s.sol:DeployEspressoOsp --rpc-url $RPC_URL --broadcast --verify -vvvv --verifier blockscout --verifier-url http://localhost:4000/api? | tail -n 11 | grep "/0x" | cut -c 37-80 | tr -d '\r\n'`
+NEW_OSP_ENTRY=`forge script --chain $CHAIN_NAME contracts/parent-chain/contract-upgrades/DeployEspressoOsp.s.sol:DeployEspressoOsp --rpc-url $RPC_URL --broadcast --verify -vvvv --verifier blockscout --verifier-url http://localhost:4000/api? | tail -n 11 | grep "/0x" | cut -c 37-80 | tr -d '\r\n'`
 echo $NEW_OSP_ENTRY
 export NEW_OSP_ENTRY
 
-#forge script to execute upgrade actions
-forge script --chain $CHAIN_NAME ../orbit-actions/contracts/parent-chain/contract-upgrades/DeployAndExecuteEspressoMigrationActions.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv --verifier blockscout --verifier-url http://localhost:4000/api?
+#forge script to deploy Espresso osp migration action 
+forge script --chain $CHAIN_NAME contracts/parent-chain/contract-upgrades/DeployEspressoOspMigrationAction.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv --verifier blockscout --verifier-url http://localhost:4000/api?
+
+#forge script to deploy the Espresso ArbOS upgrade acdtion.
+forge script --chain $L2_CHAIN_NAME contracts/parent-chain/contract-upgrades/DeployArbOSUpgradeAction.s.sol --rpc-url $L2_RPC_URL --broadcast --verify -vvvv --verifier blockscout --verifier-url http://localhost:4000/api?
+
+# use cast to call the upgradeExecutor to execute the l1 upgrade actions.
+
+cast send $UPGRADE_EXECUTOR "execute(address, bytes)" $UPGRADE_ACTION_ADDRESS $(cast calldata "perform()") --rpc-url $CHILD_CHAIN_RPC --account EXECUTOR)
+# use --account XXX / --private-key XXX / --interactive / --ledger to set the account to send the transaction from
+
 #check the upgrade happened
 
 
