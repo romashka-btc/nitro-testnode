@@ -16,13 +16,13 @@ docker compose up espresso-dev-node --detach
 docker stop nitro-testnode-sequencer-1
 
 #start nitro node in new docker container with espresso image (create a new script to do this from pieces of test-node.bash)
-./espresso-tests/create-espresso-integrated-nitro-node.bash 
+./espresso-tests/create-espresso-integrated-nitro-node.bash
 
 # enter the directory for the appropriate .env file
 cd espresso-tests
 # source the env file to export required
 source .env
-## return to top level directory    
+## return to top level directory
 cd ..
 
 #export l2 owner private key
@@ -36,7 +36,7 @@ NEW_OSP_ENTRY=`forge script --chain $CHAIN_NAME contracts/parent-chain/contract-
 echo $NEW_OSP_ENTRY
 export NEW_OSP_ENTRY
 
-#forge script to deploy Espresso osp migration action 
+#forge script to deploy Espresso osp migration action
 forge script --chain $CHAIN_NAME contracts/parent-chain/contract-upgrades/DeployEspressoOspMigrationAction.s.sol --rpc-url $RPC_URL --broadcast --verify -vvvv --verifier blockscout --verifier-url http://localhost:4000/api?
 
 #forge script to deploy the Espresso ArbOS upgrade acdtion.
