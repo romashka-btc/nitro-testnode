@@ -48,8 +48,7 @@ cast send $UPGRADE_EXECUTOR "execute(address, bytes)" 0x773D62Ce1794b11788907b32
 docker stop nitro-testnode-sequencer-1
 
 #start nitro node in new docker container with espresso image (create a new script to do this from pieces of test-node.bash)
-cd ..
-./espresso-tests/create-espresso-integrated-nitro-node.bash 
+cd ..; ./espresso-tests/create-espresso-integrated-nitro-node.bash 
 
 #echo for debug
 echo "Deploying ArbOS action"
