@@ -69,12 +69,24 @@ done
 
 
 echo "Deploying ArbOS action"
+<<<<<<< HEAD
 cd $ORBIT_ACTIONS_DIR
 forge script --chain $L2_CHAIN_NAME contracts/child-chain/arbos-upgrade/DeployArbOSUpgradeAction.s.sol:DeployArbOSUpgradeAction  --rpc-url $L2_RPC_URL --broadcast -vvvv
 ARBOS_UPGRADE_ACTION=$(cat broadcast/DeployArbOSUpgradeAction.s.sol/412346/run-latest.json | jq -r '.transactions[0].contractAddress')
 echo "Deployed ArbOSUpgradeAction at $ARBOS_UPGRADE_ACTION"
+=======
+
+#sleep for a bit to allow the espresso sequencer to start before we attempt to talk to the RPC endpoint.
+sleep 20s
+cd orbit-actions
+
+#forge script to deploy the Espresso ArbOS upgrade acdtion.
+forge script --chain $L2_CHAIN_NAME contracts/child-chain/arbos-upgrade/DeployArbOSUpgradeAction.s.sol:DeployArbOSUpgradeAction  --rpc-url $L2_RPC_URL --broadcast -vvvv
+
+ARBOS_UPGRADE_ACTION=$(cd broadcast/DeployEspressoOspMigrationAction.s.sol/412346; cat run-latest.json | jq -r '.transactions[0].contractAddress')
+
+cast send $UPGRADE_EXECUTOR "execute(address, bytes)" 0x4e5b65FB12d4165E22f5861D97A33BA45c006114 $(cast calldata "perform()") --rpc-yrl $L2_RPC_URL --broadcast -vvvv
+>>>>>>> 76f7f47 (add sleep and cast call to test bash script.)
 
 #check the upgrade happened
 
-
-#./test-node.bash --espresso --latest-espresso-image --validate --tokenbridge --init --detach
