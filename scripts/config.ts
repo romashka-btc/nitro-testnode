@@ -278,6 +278,15 @@ function writeConfigs(argv: any) {
         simpleConfig.node["batch-poster"].enable = true
         simpleConfig.node["batch-poster"]["redis-url"] = ""
         simpleConfig.execution["sequencer"].enable = true
+
+        if (argv.espresso) {
+            simpleConfig.execution.sequencer.espresso = true
+            simpleConfig.execution.sequencer["hotshot-url"] = argv.espressoUrl
+            simpleConfig.node.feed.output.enable = true
+            simpleConfig.node["batch-poster"]["hotshot-url"] = argv.espressoUrl
+            simpleConfig.node["batch-poster"]["light-client-address"] = argv.lightClientAddress
+        }
+
         fs.writeFileSync(path.join(consts.configpath, "sequencer_config.json"), JSON.stringify(simpleConfig))
     } else {
         let validatorConfig = JSON.parse(baseConfJSON)

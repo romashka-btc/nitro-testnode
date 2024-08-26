@@ -100,7 +100,6 @@ while [[ $# -gt 0 ]]; do
             fi
             ;;
         --espresso)
-            simple=false
             espresso=true
             l2_espresso=true
             shift
@@ -438,7 +437,7 @@ if $force_init; then
 
     if $simple; then
         echo == Writing configs
-        docker compose run scripts write-config --simple
+        docker compose run scripts write-config --simple --espresso $l2_espresso --lightClientAddress $lightClientAddr
     else
         echo == Writing configs
         docker compose run scripts write-config --espresso $l2_espresso --lightClientAddress $lightClientAddr
