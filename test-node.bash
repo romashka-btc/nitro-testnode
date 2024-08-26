@@ -438,6 +438,11 @@ if $force_init; then
     if $simple; then
         echo == Writing configs
         docker compose run scripts write-config --simple --espresso $l2_espresso --lightClientAddress $lightClientAddr
+        if l2_espresso; then
+            # Write espresso config to espresso config volume in case we are testing upgrades
+            docker compose run scripts-espresso write-config --simple --espresso $l2_espresso --lightClientAddress $lightClientAddr
+        fi
+
     else
         echo == Writing configs
         docker compose run scripts write-config --espresso $l2_espresso --lightClientAddress $lightClientAddr
