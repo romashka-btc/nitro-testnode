@@ -5,7 +5,7 @@ set -euoa pipefail
 cd ..
 
 #Initialize a standard network not compatible with espresso
-./test-node.bash --simple --init --detach 
+./test-node.bash --simple --init-force --detach
 
 #start espresso sequencer node
 docker compose up espresso-dev-node --detach
@@ -23,6 +23,10 @@ PRIVATE_KEY=$(docker compose run scripts print-private-key --account l2owner | t
 # enter orbit actions directory to run deployment scripts
 cd orbit-actions
 
+git submodule update --init
+
+yarn
+
 #echo for debug
 echo "Deploying Espresso Osp"
 #forge script to deploy new OSP entry and upgrade actions
@@ -31,24 +35,28 @@ forge script --chain $CHAIN_NAME contracts/parent-chain/contract-upgrades/Deploy
 #extract new_osp_entry from run-latest.json
 NEW_OSP_ENTRY=$(cd broadcast/DeployEspressoOsp.s.sol/1337; cat run-latest.json | jq -r '.transactions[4].contractAddress')
 
+echo $NEW_OSP_ENTRY
+
 #echo for debug
 echo "Deploying Espresso Osp migration action"
 
-#forge script to deploy Espresso osp migration action 
+#forge script to deploy Espresso osp migration action
 forge script --chain $CHAIN_NAME contracts/parent-chain/contract-upgrades/DeployEspressoOspMigrationAction.s.sol --rpc-url $RPC_URL --broadcast -vvvv
 
 #capture new OSP address
 OSP_MIGRATION_ACTION=$(cd broadcast/DeployEspressoOspMigrationAction.s.sol/1337; cat run-latest.json | jq -r '.transactions[0].contractAddress')
 
+echo $OSP_MIGRATION_ACTION
+
 # use cast to call the upgradeExecutor to execute the l1 upgrade actions.
 
-cast send $UPGRADE_EXECUTOR "execute(address, bytes)" 0x773D62Ce1794b11788907b32F793e647A4f9A1F7 $(cast calldata "perform()") --rpc-url $RPC_URL --private-key $PRIVATE_KEY
+cast send $UPGRADE_EXECUTOR "execute(address, bytes)" $OSP_MIGRATION_ACTION $(cast calldata "perform()") --rpc-url $RPC_URL --private-key $PRIVATE_KEY
 
 #shutdown nitro node
 docker stop nitro-testnode-sequencer-1
 
 #start nitro node in new docker container with espresso image (create a new script to do this from pieces of test-node.bash)
-cd ..; ./espresso-tests/create-espresso-integrated-nitro-node.bash 
+cd ..; ./espresso-tests/create-espresso-integrated-nitro-node.bash
 
 #echo for debug
 echo "Deploying ArbOS action"
