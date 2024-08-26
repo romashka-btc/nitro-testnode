@@ -61,15 +61,18 @@ docker stop nitro-testnode-sequencer-1
 cd $TESTNODE_DIR
 ./espresso-tests/create-espresso-integrated-nitro-node.bash
 
-#echo for debug
+# Wait for RPC_URL to be available
+while ! curl -s $L2_RPC_URL > /dev/null; do
+  echo "Waiting for $L2_RPC_URL to be available..."
+  sleep 5
+done
+
+
 echo "Deploying ArbOS action"
-
-#forge script to deploy the Espresso ArbOS upgrade acdtion.
+cd $ORBIT_ACTIONS_DIR
 forge script --chain $L2_CHAIN_NAME contracts/child-chain/arbos-upgrade/DeployArbOSUpgradeAction.s.sol:DeployArbOSUpgradeAction  --rpc-url $L2_RPC_URL --broadcast -vvvv
-
-ARBOS_UPGRADE_ACTION=$(cat broadcast/DeployEspressoOspMigrationAction.s.sol/412346/run-latest.json | jq -r '.transactions[0].contractAddress')
-
-
+ARBOS_UPGRADE_ACTION=$(cat broadcast/DeployArbOSUpgradeAction.s.sol/412346/run-latest.json | jq -r '.transactions[0].contractAddress')
+echo "Deployed ArbOSUpgradeAction at $ARBOS_UPGRADE_ACTION"
 
 #check the upgrade happened
 

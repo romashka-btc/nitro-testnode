@@ -28,6 +28,7 @@
         default = pkgs.mkShell {
           packages = with pkgs; [
             bashInteractive
+            jq
             nodejs
             yarn
             openssl # used by test-node.bash
