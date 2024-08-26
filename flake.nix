@@ -27,6 +27,7 @@
       devShells = forEachSupportedSystem ({ pkgs }: {
         default = pkgs.mkShell {
           packages = with pkgs; [
+            bashInteractive
             nodejs
             yarn
             openssl # used by test-node.bash
