@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as consts from './consts'
-import rollup from '/config/l2_chain_info.json'
 import { namedAccount, namedAddress } from './accounts'
 
 const path = require("path");
@@ -285,6 +284,9 @@ function writeConfigs(argv: any) {
             simpleConfig.node.feed.output.enable = true
             simpleConfig.node["batch-poster"]["hotshot-url"] = argv.espressoUrl
             simpleConfig.node["batch-poster"]["light-client-address"] = argv.lightClientAddress
+            simpleConfig.node['block-validator']["espresso"] = true
+            simpleConfig.node['block-validator']["light-client-address"] = argv.lightClientAddress
+            simpleConfig.node["block-validator"]["dangerous"]["reset-block-validation"] = true
         }
 
         fs.writeFileSync(path.join(consts.configpath, "sequencer_config.json"), JSON.stringify(simpleConfig))
@@ -454,10 +456,6 @@ function writeL3ChainConfig(argv: any) {
     fs.writeFileSync(path.join(consts.configpath, "l3_chain_config.json"), l3ChainConfigJSON)
 }
 
-function printUpgradeExecutorAddress(){
-    console.log(rollup)
-}
-
 export const writeConfigCommand = {
     command: "write-config",
     describe: "writes config files",
@@ -502,13 +500,5 @@ export const writeL3ChainConfigCommand = {
     describe: "writes l3 chain config file",
     handler: (argv: any) => {
         writeL3ChainConfig(argv)
-    }
-}
-
-export const printUpgradeExecutorAddressCommand = {
-    command: "print-upgrade-executor-address",
-    describe: "prints the address of the rollups upgrade executor",
-    handler: () => {
-        printUpgradeExecutorAddress()
     }
 }
