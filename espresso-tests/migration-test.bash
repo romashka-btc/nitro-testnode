@@ -88,7 +88,9 @@ ARBOS_UPGRADE_ACTION=$(cat broadcast/DeployArbOSUpgradeAction.s.sol/412346/run-l
 echo "Deployed ArbOSUpgradeAction at $ARBOS_UPGRADE_ACTION"
 
 # TODO: figure out why this upgrade does not do anything
-cast send $UPGRADE_EXECUTOR "execute(address, bytes)" $ARBOS_UPGRADE_ACTION $(cast calldata "perform()") --rpc-url $L2_RPC_URL --private-key $PRIVATE_KEY
+# cast send $UPGRADE_EXECUTOR "execute(address, bytes)" $ARBOS_UPGRADE_ACTION $(cast calldata "perform()") --rpc-url $L2_RPC_URL --private-key $PRIVATE_KEY
+
+ARBOS_VERSION_BEFORE_UPGRADE=$(cast call "0x0000000000000000000000000000000000000064" "arbOSVersion()" --rpc-url $L2_RPC_URL --private-key $PRIVATE_KEY)
 
 # TODO: remove manually calling the pre-compile
 cast send 0x0000000000000000000000000000000000000070 'scheduleArbOSUpgrade(uint64,uint64)' 35 0 --rpc-url http://localhost:8547 --private-key $PRIVATE_KEY
@@ -97,9 +99,16 @@ cast send 0x0000000000000000000000000000000000000070 'scheduleArbOSUpgrade(uint6
 
 ARBOS_VERSION_AFTER_UPGRADE=$(cast call "0x0000000000000000000000000000000000000064" "arbOSVersion()" --rpc-url $L2_RPC_URL --private-key $PRIVATE_KEY)
 
+while [ $ARBOS_VERSION_BEFORE_UPGRADE == $ARBOS_VERSION_AFTER_UPGRADE ]
+do
+  sleep 5
+  ARBOS_VERSION_AFTER_UPGRADE=$(cast call "0x0000000000000000000000000000000000000064" "arbOSVersion()" --rpc-url $L2_RPC_URL --private-key $PRIVATE_KEY)
+done
+
 #The arbsys precompile is returning 55 for the arbos version which indicates that the value internally is 0
-if [ $ARBOS_VERSION_AFTER_UPGRADE != "0x0000000000000000000000000000000000000000000000000000000000000090" ]; then
-  fail "ArbOS version not updated: Expected 35, Actual $ARBOS_VERSION_AFTER_UPGRADE"
+
+if [ $ARBOS_VERSION_AFTER_UPGRADE != "0x000000000000000000000000000000000000000000000000000000000000005a" ]; then
+  fail "ArbOS version not updated: Expected 5a, Actual $ARBOS_VERSION_AFTER_UPGRADE"
 fi
 
 #test for new OSP address
