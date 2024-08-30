@@ -284,9 +284,34 @@ function writeConfigs(argv: any) {
             simpleConfig.node.feed.output.enable = true
             simpleConfig.node["batch-poster"]["hotshot-url"] = argv.espressoUrl
             simpleConfig.node["batch-poster"]["light-client-address"] = argv.lightClientAddress
-            simpleConfig.node['block-validator']["espresso"] = true
-            simpleConfig.node['block-validator']["light-client-address"] = argv.lightClientAddress
+            simpleConfig.node["block-validator"]["espresso"] = true
+            simpleConfig.node["block-validator"]["light-client-address"] = argv.lightClientAddress
             simpleConfig.node["block-validator"]["dangerous"]["reset-block-validation"] = true
+        }
+
+        if (argv.simpleWithValidator) {
+            simpleConfig.node.staker.dangerous["without-block-validator"] = false
+            // Write a validation node config
+            let validationNodeConfig = JSON.parse(JSON.stringify({
+                "persistent": {
+                    "chain": "local"
+                },
+                "ws": {
+                    "addr": "",
+                },
+                "http": {
+                    "addr": "",
+                },
+                "validation": {
+                    "api-auth": true,
+                    "api-public": false,
+                },
+                "auth": {
+                    "jwtsecret": valJwtSecret,
+                    "addr": "0.0.0.0",
+                },
+            }))
+            fs.writeFileSync(path.join(consts.configpath, "validation_node_config.json"), JSON.stringify(validationNodeConfig))
         }
 
         fs.writeFileSync(path.join(consts.configpath, "sequencer_config.json"), JSON.stringify(simpleConfig))
@@ -464,6 +489,11 @@ export const writeConfigCommand = {
           boolean: true,
           describe: "simple config (sequencer is also poster, validator)",
           default: false,
+        },
+        simpleWithValidator: {
+            boolean: true,
+            describe: "simple config but with real validator",
+            default: false,
         },
       },    
     handler: (argv: any) => {
