@@ -113,7 +113,7 @@ echo "Deploying ArbOS Upgrade action"
 cd $ORBIT_ACTIONS_DIR
 # Forge script to deploy the Espresso ArbOS upgrade action.
 # ** Essential migration step ** the ArbOS upgrade signifies that the chain is now espresso compatible.
-forge script --chain $CHILD_CHAIN_CHAIN_NAME contracts/child-chain/arbos-upgrade/DeployArbOSUpgradeAction.s.sol:DeployArbOSUpgradeAction  --rpc-url $CHILD_CHAIN_RPC_URL --broadcast -vvvv
+forge script --chain $CHILD_CHAIN_CHAIN_id contracts/child-chain/arbos-upgrade/DeployArbOSUpgradeAction.s.sol:DeployArbOSUpgradeAction  --rpc-url $CHILD_CHAIN_RPC_URL --broadcast -vvvv
 
 # Get the address of the newly deployed upgrade action.
 ARBOS_UPGRADE_ACTION=$(cat broadcast/DeployArbOSUpgradeAction.s.sol/412346/run-latest.json | jq -r '.transactions[0].contractAddress')
