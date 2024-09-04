@@ -55,7 +55,7 @@ echo "Deploying Espresso Osp"
 # Change directory to orbit actions dir for the following commands.
 cd $ORBIT_ACTIONS_DIR
 # ** Essential migration step ** Forge script to deploy new OSP entry. We do this to later point the rollups challenge manager to the espresso integrated OSP.
-forge script --chain $PARENT_CHAIN_CHAIN_ID contracts/parent-chain/contract-upgrades/DeployEspressoOsp.s.sol:DeployEspressoOsp --rpc-url $PARENT_CHAIN_RPC_URL --broadcast -vvvv
+forge script --chain $PARENT_CHAIN_CHAIN_ID contracts/parent-chain/espresso-migration/DeployEspressoOsp.s.sol:DeployEspressoOsp --rpc-url $PARENT_CHAIN_RPC_URL --broadcast -vvvv
 
 # Extract new_osp_entry address from run-latest.json
 #  * Essential migration sub step * These addresses are likely known addresses to operators in the event of a real migration after they have deployed the new OSP contracts, however, if operators create a script for the migration, this command is useful.
@@ -68,7 +68,7 @@ echo "Deployed new OspEntry at $NEW_OSP_ENTRY"
 echo "Deploying Espresso Osp migration action"
 
 # ** Essential migration step ** Forge script to deploy Espresso OSP migration action
-forge script --chain $PARENT_CHAIN_CHAIN_ID contracts/parent-chain/contract-upgrades/DeployEspressoOspMigrationAction.s.sol --rpc-url $PARENT_CHAIN_RPC_URL --broadcast -vvvv
+forge script --chain $PARENT_CHAIN_CHAIN_ID contracts/parent-chain/espresso-migration/DeployEspressoOspMigrationAction.s.sol --rpc-url $PARENT_CHAIN_RPC_URL --broadcast -vvvv
 
 # Capture new OSP address
 # * Essential migration sub step ** Essential migration sub step * operators will be able to manually determine this address while running the upgrade, but this can be useful if they wish to make a script.
@@ -113,7 +113,7 @@ echo "Deploying ArbOS Upgrade action"
 cd $ORBIT_ACTIONS_DIR
 # Forge script to deploy the Espresso ArbOS upgrade action.
 # ** Essential migration step ** the ArbOS upgrade signifies that the chain is now espresso compatible.
-forge script --chain $CHILD_CHAIN_CHAIN_id contracts/child-chain/arbos-upgrade/DeployArbOSUpgradeAction.s.sol:DeployArbOSUpgradeAction  --rpc-url $CHILD_CHAIN_RPC_URL --broadcast -vvvv
+forge script --chain $CHILD_CHAIN_CHAIN_NAME contracts/child-chain/arbos-upgrade/DeployArbOSUpgradeAction.s.sol:DeployArbOSUpgradeAction  --rpc-url $CHILD_CHAIN_RPC_URL --broadcast -vvvv
 
 # Get the address of the newly deployed upgrade action.
 ARBOS_UPGRADE_ACTION=$(cat broadcast/DeployArbOSUpgradeAction.s.sol/412346/run-latest.json | jq -r '.transactions[0].contractAddress')
