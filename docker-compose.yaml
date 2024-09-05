@@ -393,6 +393,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+  # Reads from sequencer feed, forwards transactions to sequencer
   full-node:
     pid: host # allow debugging
     image: nitro-node-dev-testnode
