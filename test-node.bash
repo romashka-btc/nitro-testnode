@@ -450,10 +450,6 @@ if $force_init; then
     if $simple; then
         echo == Writing configs for simple
         docker compose run scripts write-config --simple --simpleWithValidator $simple_with_validator --espresso $l2_espresso --lightClientAddress $lightClientAddr
-        if $l2_espresso; then
-            # Write espresso config to espresso config volume in case we are testing upgrades
-            docker compose run scripts-espresso write-config --simple --simpleWithValidator $simple_with_validator --espresso $l2_espresso --lightClientAddress $lightClientAddr
-        fi
 
     else
         echo == Writing configs
