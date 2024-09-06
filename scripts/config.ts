@@ -285,8 +285,6 @@ function writeConfigs(argv: any) {
         simpleConfig.execution["sequencer"].enable = true
 
         if (argv.espresso) {
-            simpleConfig.execution.sequencer.espresso = true
-            simpleConfig.execution.sequencer["hotshot-url"] = argv.espressoUrl
             simpleConfig.node.feed.output.enable = true
             simpleConfig.node["batch-poster"]["hotshot-url"] = argv.espressoUrl
             simpleConfig.node["batch-poster"]["light-client-address"] = argv.lightClientAddress
@@ -318,6 +316,11 @@ function writeConfigs(argv: any) {
                 },
             }))
             fs.writeFileSync(path.join(consts.configpath, "validation_node_config.json"), JSON.stringify(validationNodeConfig))
+            if(argv.espresso){
+                //if we are attempting to start a new espresso sequencer we should also give that validator a val_jwt file as it hasn't been written to the espresso-config.
+                const val_jwt = `0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`
+                fs.writeFileSync(path.join(consts.configpath, "val_jwt.hex"), val_jwt)    
+            }
         }
 
         fs.writeFileSync(path.join(consts.configpath, "sequencer_config.json"), JSON.stringify(simpleConfig))
