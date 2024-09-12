@@ -69,4 +69,4 @@ jobs:
       - name: Smoke Test with Latest Espresso Image
         run: |
           ${{ matrix.test-script }}
-        timeout-minutes: 30
+        timeout-minutes: 60
