@@ -4,4 +4,4 @@
 [submodule "orbit-actions"]
 	path = orbit-actions
 	url = git@github.com:EspressoSystems/orbit-actions.git
-	branch = espresso-migration
+	branch = integration
