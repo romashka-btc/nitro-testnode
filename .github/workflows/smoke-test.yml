@@ -69,4 +69,9 @@ jobs:
       - name: Smoke Test with Latest Espresso Image
         run: |
           ${{ matrix.test-script }}
-        timeout-minutes: 60
+        timeout-minutes: 30
+
+      - name: Dump docker logs on failure
+        if: failure()
+        run: |
+          docker compose logs
