@@ -97,7 +97,7 @@ cd $TESTNODE_DIR
 ./espresso-tests/create-espresso-integrated-nitro-node.bash
 
 # Wait for CHILD_CHAIN_RPC_URL to be available
-# * Essential migration sub step * This is technically essential to the migration, but doesn't usually take long and shouldn't need to be programatically determined during a live migration.
+# * Essential migration sub step * This is technically essential to the migration, but doesn't usually take long and shouldn't need to be programmatically determined during a live migration.
 while ! curl -s $CHILD_CHAIN_RPC_URL > /dev/null; do
   echo "Waiting for $CHILD_CHAIN_RPC_URL to be available..."
   sleep 5
@@ -125,7 +125,7 @@ echo "Deployed ArbOSUpgradeAction at $ARBOS_UPGRADE_ACTION"
 ARBOS_VERSION_BEFORE_UPGRADE=$(cast call "0x0000000000000000000000000000000000000064" "arbOSVersion()(uint64)" --rpc-url $CHILD_CHAIN_RPC_URL)
 
 # Use the Upgrde executor on the child chain to execute the ArbOS upgrade to signify that the node is now operating in espresso mode. This is essential for the migration.
-# ** Essential migration step ** This step can technically be done before all of the others as it is just scheduling the ArbOS upgrade. The unix timestamp at which the upgrade occurrs can be determined by operators, but for the purposes of the test we use 0 to upgrade immediately.
+# ** Essential migration step ** This step can technically be done before all of the others as it is just scheduling the ArbOS upgrade. The unix timestamp at which the upgrade occurs can be determined by operators, but for the purposes of the test we use 0 to upgrade immediately.
 cast send $CHILD_CHAIN_UPGRADE_EXECUTOR_ADDRESS "execute(address, bytes)" $ARBOS_UPGRADE_ACTION $(cast calldata "perform()") --rpc-url $CHILD_CHAIN_RPC_URL --private-key $PRIVATE_KEY
 
 # Check the upgrade happened
